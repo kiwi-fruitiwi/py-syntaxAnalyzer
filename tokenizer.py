@@ -73,3 +73,12 @@ class JackTokenizer:
 
 	def getJackCommands(self):
 		return self.jack_commands.copy()
+
+	def hasMoreTokens(self):
+		pass
+
+	def advance(self):
+		pass
+
+	def getTokenType(self):
+		pass
