@@ -29,6 +29,7 @@ project contract
 # take care of multiple files in a directory vs one target file
 
 from parser import CompilationEngine
+
 from tokenizer import JackTokenizer
 from tokenizer import TokenType
 from tokenizer import Keyword
@@ -39,7 +40,22 @@ import os
 root: str = 'C:/Dropbox/code/nand2tetris/kiwi/nand2tetris/projects/'
 filename: str = root + '10/ArrayTest/Main.jack'
 
-parser = JackTokenizer(filename)
+tk = JackTokenizer(filename)
+tk.advance()
 
-for line in parser.getJackCommands():
+# main loop
+while tk.hasMoreTokens():
+    tokenClassification = tk.getTokenType()
+    print(f'<{tokenClassification}>')
+
+    # determine the value of the token
+    #   keyWord, symbol, identifier, intVal, stringVal
+    value = 'placeholder'
+
+    print(f'{value}')
+    print(f'</{tokenClassification}\n>')
+    tk.advance()
+
+
+for line in tk.getJackCommands():
     print(f'{line}')
