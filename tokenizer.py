@@ -36,19 +36,25 @@ class Keyword(enum.Enum):
 
 ''' jack grammar guide for tokenizer.py
 
-lexical elements: the jack language includes five types of terminal tokens
-keyword:
-	class constructor function method field static var
-	int char boolean
-	void true false null this let do if else while return
-symbol: 
-	{}()[].,;+-*/*|<>=~
-integerConstant: 
-	a decimal number in the range 0... 32767
-StringConstant: 
-	a sequence of Unicode chars not including double quotes or \n
-identifier: 
-	a sequence of letters, digits, and underscore not starting with a digit
+	lexical elements → the jack language includes five categories of terminal 
+	elements, also known as tokens:
+	
+	keyword:
+		class constructor function method field static var
+		int char boolean
+		void true false null this let do if else while return
+	symbol: 
+		{}()[].,;+-*/*|<>=~
+		
+	integerConstant: 
+		a decimal number in the range 0... 32767
+		
+	StringConstant: 
+		a sequence of Unicode chars not including double quotes or \n surrounded 
+		by double quotes
+		
+	identifier: 
+		a sequence of letters, digits, and underscore not starting with a digit
 '''
 
 
