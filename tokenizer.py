@@ -5,7 +5,7 @@ import enum
 class TokenType(enum.Enum):
 	KEYWORD = 1
 	SYMBOL = 2
-	ID = 3
+	IDENTIFIER = 3
 	INT_CONST = 4
 	STRING_CONST = 5
 
@@ -106,3 +106,19 @@ class JackTokenizer:
 
 	def getTokenType(self):
 		pass
+
+	def keyWord(self):
+		pass
+
+	def symbol(self):
+		pass
+
+	def identifier(self):
+		pass
+
+	def intVal(self):
+		pass
+
+	def stringVal(self):
+		pass
+

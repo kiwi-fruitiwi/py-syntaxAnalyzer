@@ -44,6 +44,34 @@ project contract
             check keywords list for next token. should be all alphabetic
             identifier → [0-9a-zA-Z_]+
 
+  tokenizing strategy
+    observations:
+        every line ends with a newline or symbol
+        every token ends with a space or a symbol (or newline)
+        → find position of next space, \n, or symbol →  evaluate current token
+
+    advance()
+    for code line `class Main {`
+        first character 'c'
+        append until we reach: ⎵ \n symbol → 'class'
+            identify as keyword. if it hadn't, identifier
+        for 'Main', append until ⎵. same as above
+
+    for code line 'function void main() {'
+        main() will parse 'main' and arrive upon a symbol
+
+    for code line `let length = Keyboard.readInt("HOW MANY NUMBERS? ");`
+        reading in the first double quote makes us find the next one in the line
+            throw error if not
+
+    for code line `let i = 0;`
+        if numeric, must be an integerConstant because identifiers can't start
+            eat until delimiter: ⎵ \n symbol
+
+    method: #detectDelimiter returns true if next char is ⎵, \n, symbol
+
+  tokenizer pseudocode
+
 """
 
 # take care of multiple files in a directory vs one target file
@@ -70,7 +98,21 @@ while tk.hasMoreTokens():
 
     # determine the value of the token
     #   keyWord, symbol, identifier, intVal, stringVal
-    value = 'placeholder'
+
+    match tokenClassification:
+        case TokenType.KEYWORD:
+            value = tk.keyWord()
+        case TokenType.SYMBOL:
+            value = tk.symbol()
+        case TokenType.IDENTIFIER:
+            value = tk.identifier()
+        case TokenType.INT_CONST:
+            value = tk.intVal()
+        case TokenType.STRING_CONST:
+            value = tk.stringVal()
+        case default:
+            raise TypeError(f'token type invalid: not keyword, symbol, '
+                            f'identifier, int constant, or string constant.')
 
     print(f'{value}')
     print(f'</{tokenClassification}\n>')
