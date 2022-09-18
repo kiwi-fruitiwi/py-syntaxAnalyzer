@@ -72,6 +72,8 @@ class JackTokenizer:
 		self.jack_commands = []
 		self.commandIndex = -1  # current command index;
 		self.currentCommand = None  # initially there is no current command
+		self.currentTokenType = None  # set in advance()
+		self.symbols = "{}[]().,;+-*/|<>=~"
 
 		for line in lines:
 			# ignore whitespace
@@ -102,12 +104,24 @@ class JackTokenizer:
 		pass
 
 	def advance(self):
-		pass
+
+
+		# set token type
+		self.currentTokenType = TokenType.KEYWORD
+
+	# returns true if next char is ⎵, \n, symbol
+	def __detectDelimiter(self, char: str):
+		return self.__detectSymbol(char) or (char == ' ') or (char == '\n')
+
+	# returns true if character input is in our symbols list
+	def __detectSymbol(self, char: str):
+		return char in self.symbols
 
 	def getTokenType(self):
-		pass
+		return self.currentTokenType
 
 	def keyWord(self):
+		# assert tokenType
 		pass
 
 	def symbol(self):

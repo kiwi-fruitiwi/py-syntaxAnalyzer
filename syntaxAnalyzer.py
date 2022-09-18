@@ -70,6 +70,7 @@ project contract
 
     method: #detectDelimiter returns true if next char is ⎵, \n, symbol
 
+  tokenizer testing method: line by line parsing: one new category at a time
   tokenizer pseudocode
 
 """
@@ -87,6 +88,7 @@ import os
 
 root: str = 'C:/Dropbox/code/nand2tetris/kiwi/nand2tetris/projects/'
 filename: str = root + '10/ArrayTest/Main.jack'
+filename: str = 'test.jack'
 
 tk = JackTokenizer(filename)
 tk.advance()
@@ -95,11 +97,7 @@ tk.advance()
 while tk.hasMoreTokens():
     tokenClassification = tk.getTokenType()
     print(f'<{tokenClassification}>')
-
-    # determine the value of the token
-    #   keyWord, symbol, identifier, intVal, stringVal
-
-    match tokenClassification:
+    match tokenClassification:  # determine value of token
         case TokenType.KEYWORD:
             value = tk.keyWord()
         case TokenType.SYMBOL:
@@ -113,7 +111,6 @@ while tk.hasMoreTokens():
         case default:
             raise TypeError(f'token type invalid: not keyword, symbol, '
                             f'identifier, int constant, or string constant.')
-
     print(f'{value}')
     print(f'</{tokenClassification}\n>')
     tk.advance()
