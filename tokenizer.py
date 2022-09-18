@@ -74,6 +74,29 @@ class JackTokenizer:
 		self.currentCommand = None  # initially there is no current command
 		self.currentTokenType = None  # set in advance()
 		self.symbols = "{}[]().,;+-*/|<>=~"
+		self.keywords = [
+			'class',
+			'constructor',
+			'function',
+			'method',
+			'field',
+			'static',
+			'var',
+			'int',
+			'char',
+			'boolean',
+			'void',
+			'true',
+			'false',
+			'null',
+			'this',
+			'let',
+			'do',
+			'if',
+			'else',
+			'while',
+			'return'
+		]
 
 		for line in lines:
 			# ignore whitespace
@@ -104,6 +127,20 @@ class JackTokenizer:
 		pass
 
 	def advance(self):
+		# keyword → starts with alphabetic character.
+		# 	try token.lower().isAlpha()
+		#	lower() does not mutate
+		# make keywords list. append until next delimiter
+		# then check in keywords. if not keyword, probably an identifier
+
+		# integerConstant: must be in "0123456789" until a delimiter
+
+		# stringConstant:
+		#
+		# signified with ", then find index of next "
+		# throw error if second " doesn't exist on same line
+		# ignore spaces inside
+
 
 
 		# set token type
@@ -135,4 +172,3 @@ class JackTokenizer:
 
 	def stringVal(self):
 		pass
-
