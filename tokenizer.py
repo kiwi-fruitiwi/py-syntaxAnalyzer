@@ -159,94 +159,76 @@ class JackTokenizer:
 		return self.i < len(self.code)
 
 	def advance(self):
-		# skip whitespace and newlines after tokens; does this need to loop?
-		# while instead of if, if so
-		if self.code[self.i] == ' ':
-			print(f'→ skipping index for ⎵: {self.code[self.i]}.\n')
+		# 🏭 skip whitespace(s) and single newlines after tokens
+		# lines cannot start with spaces, which the constructor handles w/trim()
+		while self.code[self.i] == ' ':
+			# print(f'→ skipping index for ⎵: {self.code[self.i]}.\n')
 			self.i += 1
 			if not self.hasMoreTokens():
 				return
 
-		if self.code[self.i] == '\n':
-			print(f'→ skipping index for newline: {self.code[self.i]}.\n')
+		if self.code[self.i] == '\n':  # constructor ensures no double \n
+			# print(f'→ skipping index for newline: {self.code[self.i]}.\n')
 			self.i += 1
 			if not self.hasMoreTokens():
 				return
 
-		# detect symbols
+		# every lexical category needs to:
+		# 	set currentTokenType, currentSymbolValue
+		#	increment code index, i, appropriately
+
+		# 🏭 detect symbols
 		if self.__isSymbol(self.code[self.i]):
 			self.currentTokenType = TokenType.SYMBOL
 			self.currentSymbolValue = self.code[self.i]
 
-			print(f'{self.currentTokenType} detected: →{self.currentSymbolValue}←')
+			# print(f'{self.currentTokenType} detected: →{self.currentSymbolValue}←')
 			self.i += 1
 			return
 
-		# detect string constants
-		# arr[start:] → items start through the rest of the array
-		# search rest of string → isn't limited to one line which might be bad
-		# code[i+1:].index('\"') gives next ""
-		print(f'current character before STR_CONST code: {self.code[self.i]}')
+		# 🏭 detect string constants
+		# 	search rest of string → isn't limited to one line which might be bad
 		if self.code[self.i] == '\"':
 			nextDoubleQuoteIndex = self.code[self.i+1:].index('\"') + self.i
-			print(f'next double quote index: {nextDoubleQuoteIndex}')
-
-			# value = self.code[i+1, ndqi]
-			# advance self.i: += value.length
-			# e.g. "hello" is [1,6), self.i += len(value)+1
+			# print(f'next double quote index: {nextDoubleQuoteIndex}')
 
 			self.currentTokenType = TokenType.STRING_CONST
 			self.currentStrConstValue = self.code[self.i+1:nextDoubleQuoteIndex+1]
 			self.i += len(self.currentStrConstValue) + 2
 			return
 
-
-		# detect integer constants
-		intBuffer: str = ''
+		# 🏭 detect integer constants: decimal numbers in range [0, 32767]
+		intBuilder: str = ''
 		if self.code[self.i] in self.digits:
 			while not self.__isDelimiter(self.code[self.i]) and self.code[self.i] in self.digits:
-				intBuffer += self.code[self.i]
+				intBuilder += self.code[self.i]
 				self.i += 1
 
-			# assert value does not overflow
-			assert 0 <= int(intBuffer) <= 32767
+			# assert value does not overflow, according to spec
+			assert 0 <= int(intBuilder) <= 32767
 
 			self.currentTokenType = TokenType.INT_CONST
-			self.currentIntConstValue = intBuffer
-			print(f'{self.currentTokenType} detected: {intBuffer}')
+			self.currentIntConstValue = intBuilder
+			# print(f'{self.currentTokenType} detected: {intBuilder}')
 			return
 
-		# now it's either a keyword or identifier
-		stringBuffer: str = ''
+		# 🏭 now it's either a keyword or identifier. let's build a string!
+		stringBuilder: str = ''
 		while not self.__isDelimiter(self.code[self.i]):
-			stringBuffer += self.code[self.i]
+			stringBuilder += self.code[self.i]
 			self.i += 1
 
-		# detect keyword
-		print(f'stringBuffer result: →{stringBuffer}←')
-		if self.__isKeyword(stringBuffer):
+		# 🏭 detect keyword
+		# print(f'stringBuffer result: →{stringBuilder}←')
+		if self.__isKeyword(stringBuilder):
 			self.currentTokenType = TokenType.KEYWORD
-			self.currentKeyWordValue = stringBuffer
-			print(f'{self.currentTokenType} detected: {stringBuffer}')
+			self.currentKeyWordValue = stringBuilder
+			# print(f'{self.currentTokenType} detected: {stringBuilder}')
 		else:
+			# 🏭 detect identifier
 			self.currentTokenType = TokenType.IDENTIFIER
-			self.currentIdentifierValue = stringBuffer
-			print(f'{self.currentTokenType} detected: {stringBuffer}')
-
-
-		# print(f'ending index: {self.commandIndex}')
-
-		# if it's not a keyword, it should be an identifier
-
-
-		# integerConstant: must be in "0123456789" until a delimiter
-
-		# stringConstant:
-		#
-		# signified with ", then find index of next "
-		# throw error if second " doesn't exist on same line
-		# ignore spaces inside
-
+			self.currentIdentifierValue = stringBuilder
+			# print(f'{self.currentTokenType} detected: {stringBuilder}')
 
 	# returns true if next char is ⎵, \n, symbol
 	def __isDelimiter(self, char: str):

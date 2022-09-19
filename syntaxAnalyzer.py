@@ -81,41 +81,46 @@ from parser import CompilationEngine
 
 from tokenizer import JackTokenizer
 from tokenizer import TokenType
-from tokenizer import Keyword
 
 from pathlib import Path
 import os
 
 root: str = 'C:/Dropbox/code/nand2tetris/kiwi/nand2tetris/projects/'
-# filename: str = root + '10/ArrayTest/Main.jack'
-filename: str = 'test.jack'
+filename: str = root + '10/ArrayTest/Main.jack'
+# filename: str = 'test.jack'
 
 tk = JackTokenizer(filename)
 tk.advance()
 
+output = open('tests/ArrayTest/output.xml', 'w')
+
+output.write(f'<tokens>\n')
+
 # main loop
 while tk.hasMoreTokens():
     tokenClassification = tk.getTokenType()
-    print(f'<{tokenClassification}>')
     match tokenClassification:  # determine value of token
         case TokenType.KEYWORD:
             value = tk.keyWord()
+            tagName = 'keyword'
         case TokenType.SYMBOL:
             value = tk.symbol()
+            tagName = 'symbol'
         case TokenType.IDENTIFIER:
             value = tk.identifier()
+            tagName = 'identifier'
         case TokenType.INT_CONST:
             value = tk.intVal()
+            tagName = 'integerConstant'
         case TokenType.STRING_CONST:
             value = tk.stringVal()
+            tagName = 'stringConstant'
         case default:
             raise TypeError(f'token type invalid: not keyword, symbol, '
                             f'identifier, int constant, or string constant.')
-    print(f'{value}')
-    print(f'</{tokenClassification}>\n')
+
+    output.write(f'<{tagName}> {value} </{tagName}>\n')
     tk.advance()
 
-# for line in tk.getJackCommands():
-#     print(f'{line}')
 
-# print(f'{tk.getJackCommands()}')
+output.write(f'</tokens>')
