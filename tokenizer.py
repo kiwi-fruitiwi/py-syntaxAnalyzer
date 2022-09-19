@@ -69,7 +69,7 @@ class JackTokenizer:
 
 		jack_file = open(filename, 'r')
 		lines = jack_file.readlines()
-		self.jack_commands = []
+		self.jack_commands = ""  # all commands in one string, inc. newlines
 		self.commandIndex = -1  # current command index;
 		self.currentCommand = None  # initially there is no current command
 		self.currentTokenType = None  # set in advance()
@@ -118,10 +118,18 @@ class JackTokenizer:
 			# strip whitespace
 			line = line.strip()
 
-			self.jack_commands.append(line)
+			self.jack_commands += line + '\n'
+
+	def testLine(self, line: str):
+		# test function with single line input
+		index = 0
+
+
+
+		return
 
 	def getJackCommands(self):
-		return self.jack_commands.copy()
+		return self.jack_commands
 
 	def hasMoreTokens(self):
 		pass
@@ -172,3 +180,4 @@ class JackTokenizer:
 
 	def stringVal(self):
 		pass
+

@@ -116,5 +116,6 @@ while tk.hasMoreTokens():
     tk.advance()
 
 
-for line in tk.getJackCommands():
-    print(f'{line}')
+# for line in tk.getJackCommands():
+#     print(f'{line}')
+print(f'{tk.getJackCommands()}')
