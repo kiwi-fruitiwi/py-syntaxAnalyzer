@@ -69,8 +69,8 @@ class JackTokenizer:
 
 		jack_file = open(filename, 'r')
 		lines = jack_file.readlines()
-		self.jack_commands = ""  # all commands in one string, inc. newlines
-		self.commandIndex = -1  # current command index;
+		self.jackCommands = ""  # all commands in one string, inc. newlines
+		self.commandIndex = 0  # current index in above string
 		self.currentCommand = None  # initially there is no current command
 		self.currentTokenType = None  # set in advance()
 		self.symbols = "{}[]().,;+-*/|<>=~"
@@ -118,21 +118,27 @@ class JackTokenizer:
 			# strip whitespace
 			line = line.strip()
 
-			self.jack_commands += line + '\n'
+			# combine lines into a single string separated by newlines
+			# later, we can count our current line via newline characters?
+			# unless newline chars are present in .jack file strings, too.
+			self.jackCommands += line + '\n'
 
+	# probably not needed
 	def testLine(self, line: str):
 		# test function with single line input
-		index = 0
-
-
-
+		self.commandIndex = 0
 		return
 
+	# unnecessary; not part of the API
 	def getJackCommands(self):
-		return self.jack_commands
+		return self.jackCommands
 
 	def hasMoreTokens(self):
-		pass
+		# let's say the command string is length 5. we've processed indices
+		# 0,1,2,3,4. when we're done with the last token, advance should
+		# increment the index to 5. thus, hasMoreTokens should return false
+		# if the commandIndex is greater than or equal to its length.
+		return self.commandIndex >= len(self.jackCommands)
 
 	def advance(self):
 		# keyword → starts with alphabetic character.
@@ -140,6 +146,8 @@ class JackTokenizer:
 		#	lower() does not mutate
 		# make keywords list. append until next delimiter
 		# then check in keywords. if not keyword, probably an identifier
+
+
 
 		# integerConstant: must be in "0123456789" until a delimiter
 
