@@ -92,45 +92,28 @@ filename: str = 'test.jack'
 
 tk = JackTokenizer(filename)
 tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
-tk.advance()
 
 # main loop
-# while tk.hasMoreTokens():
-#     tokenClassification = tk.getTokenType()
-#     print(f'<{tokenClassification}>')
-#     match tokenClassification:  # determine value of token
-#         case TokenType.KEYWORD:
-#             value = tk.keyWord()
-#         case TokenType.SYMBOL:
-#             value = tk.symbol()
-#         case TokenType.IDENTIFIER:
-#             value = tk.identifier()
-#         case TokenType.INT_CONST:
-#             value = tk.intVal()
-#         case TokenType.STRING_CONST:
-#             value = tk.stringVal()
-#         case default:
-#             raise TypeError(f'token type invalid: not keyword, symbol, '
-#                             f'identifier, int constant, or string constant.')
-#     print(f'{value}')
-#     print(f'</{tokenClassification}>\n')
-#     tk.advance()
+while tk.hasMoreTokens():
+    tokenClassification = tk.getTokenType()
+    print(f'<{tokenClassification}>')
+    match tokenClassification:  # determine value of token
+        case TokenType.KEYWORD:
+            value = tk.keyWord()
+        case TokenType.SYMBOL:
+            value = tk.symbol()
+        case TokenType.IDENTIFIER:
+            value = tk.identifier()
+        case TokenType.INT_CONST:
+            value = tk.intVal()
+        case TokenType.STRING_CONST:
+            value = tk.stringVal()
+        case default:
+            raise TypeError(f'token type invalid: not keyword, symbol, '
+                            f'identifier, int constant, or string constant.')
+    print(f'{value}')
+    print(f'</{tokenClassification}>\n')
+    tk.advance()
 
 # for line in tk.getJackCommands():
 #     print(f'{line}')

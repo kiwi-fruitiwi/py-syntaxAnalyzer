@@ -69,9 +69,9 @@ class JackTokenizer:
 
 		jack_file = open(filename, 'r')
 		lines = jack_file.readlines()
-		self.jackCommands = ""  # all commands in one string, inc. newlines
-		self.commandIndex = 0  # current index in above string
-		self.currentCommand = None  # initially there is no current command
+
+		self.code = ""  # all commands in one string, inc. newlines
+		self.i = 0  # current index in above monolithic code string
 		self.currentTokenType = None  # set in advance()
 
 		# these 5 are used by their respective accessors, e.g. symbol(),
@@ -84,6 +84,7 @@ class JackTokenizer:
 		self.currentKeyWordValue = None
 
 		self.symbols = "{}[]().,;+-*/|<>=~"
+		self.digits = "0123456789"  # for integer constants
 		self.keywords = [
 			'class',
 			'constructor',
@@ -137,67 +138,103 @@ class JackTokenizer:
 			# combine lines into a single string separated by newlines
 			# later, we can count our current line via newline characters?
 			# unless newline chars are present in .jack file strings, too.
-			self.jackCommands += line + '\n'
-		print(self.jackCommands)
+			self.code += line + '\n'
+		print(self.code)
 
 	# probably not needed
 	def testLine(self, line: str):
 		# test function with single line input
-		self.commandIndex = 0
+		self.i = 0
 		return
 
 	# unnecessary; not part of the API
 	def getJackCommands(self):
-		return self.jackCommands
+		return self.code
 
 	def hasMoreTokens(self):
 		# let's say the command string is length 5. we've processed indices
 		# 0,1,2,3,4. when we're done with the last token, advance should
 		# increment the index to 5. thus, hasMoreTokens should return false
 		# if the commandIndex is greater than or equal to its length.
-		return self.commandIndex < len(self.jackCommands)
+		return self.i < len(self.code)
 
 	def advance(self):
-		# keyword → starts with alphabetic character.
-		# 	try token.lower().isAlpha()
-		#	lower() does not mutate
-		# make keywords list. append until next delimiter
-		# then check in keywords. if not keyword, probably an identifier
+		# skip whitespace and newlines after tokens; does this need to loop?
+		# while instead of if, if so
+		if self.code[self.i] == ' ':
+			print(f'→ skipping index for ⎵: {self.code[self.i]}.\n')
+			self.i += 1
+			if not self.hasMoreTokens():
+				return
 
-		# skip whitespace and newlines after tokens
-		currentChar: str = self.jackCommands[self.commandIndex]
-		while (currentChar == ' ') or (currentChar == '\n'):
-			print(f'→ skipping index for ⎵ or newline\n')
-			self.commandIndex += 1
-			currentChar = self.jackCommands[self.commandIndex]
+		if self.code[self.i] == '\n':
+			print(f'→ skipping index for newline: {self.code[self.i]}.\n')
+			self.i += 1
+			if not self.hasMoreTokens():
+				return
 
 		# detect symbols
-		currentChar: str = self.jackCommands[self.commandIndex]
-		if self.__isSymbol(currentChar):
+		if self.__isSymbol(self.code[self.i]):
 			self.currentTokenType = TokenType.SYMBOL
-			self.currentSymbolValue = currentChar
+			self.currentSymbolValue = self.code[self.i]
 
 			print(f'{self.currentTokenType} detected: →{self.currentSymbolValue}←')
-			self.commandIndex += 1
+			self.i += 1
+			return
+
+		# detect string constants
+		# arr[start:] → items start through the rest of the array
+		# search rest of string → isn't limited to one line which might be bad
+		# code[i+1:].index('\"') gives next ""
+		print(f'current character before STR_CONST code: {self.code[self.i]}')
+		if self.code[self.i] == '\"':
+			nextDoubleQuoteIndex = self.code[self.i+1:].index('\"') + self.i
+			print(f'next double quote index: {nextDoubleQuoteIndex}')
+
+			# value = self.code[i+1, ndqi]
+			# advance self.i: += value.length
+			# e.g. "hello" is [1,6), self.i += len(value)+1
+
+			self.currentTokenType = TokenType.STRING_CONST
+			self.currentStrConstValue = self.code[self.i+1:nextDoubleQuoteIndex+1]
+			self.i += len(self.currentStrConstValue) + 2
 			return
 
 
+		# detect integer constants
+		intBuffer: str = ''
+		if self.code[self.i] in self.digits:
+			while not self.__isDelimiter(self.code[self.i]) and self.code[self.i] in self.digits:
+				intBuffer += self.code[self.i]
+				self.i += 1
+
+			# assert value does not overflow
+			assert 0 <= int(intBuffer) <= 32767
+
+			self.currentTokenType = TokenType.INT_CONST
+			self.currentIntConstValue = intBuffer
+			print(f'{self.currentTokenType} detected: {intBuffer}')
+			return
+
+		# now it's either a keyword or identifier
 		stringBuffer: str = ''
-		while not self.__isDelimiter(self.jackCommands[self.commandIndex]):
-			stringBuffer += self.jackCommands[self.commandIndex]
-			self.commandIndex += 1
+		while not self.__isDelimiter(self.code[self.i]):
+			stringBuffer += self.code[self.i]
+			self.i += 1
 
 		# detect keyword
 		print(f'stringBuffer result: →{stringBuffer}←')
 		if self.__isKeyword(stringBuffer):
 			self.currentTokenType = TokenType.KEYWORD
+			self.currentKeyWordValue = stringBuffer
 			print(f'{self.currentTokenType} detected: {stringBuffer}')
 		else:
 			self.currentTokenType = TokenType.IDENTIFIER
+			self.currentIdentifierValue = stringBuffer
 			print(f'{self.currentTokenType} detected: {stringBuffer}')
 
 
-		print(f'ending index: {self.commandIndex}')
+		# print(f'ending index: {self.commandIndex}')
 
 		# if it's not a keyword, it should be an identifier
 
