@@ -107,6 +107,12 @@ class JackTokenizer:
 			if line[0] == '/' and line[1] == '/':
 				continue
 
+			# ignore comments that start with /**
+			# TODO add case if this appears mid-line: slice!
+			#  but what about multiline?
+			if line[0] == '/' and line[1] == '*' and line[2] == '*':
+				continue
+
 			# ignore mid-line comments
 			try:
 				index = line.index('//')
@@ -122,6 +128,7 @@ class JackTokenizer:
 			# later, we can count our current line via newline characters?
 			# unless newline chars are present in .jack file strings, too.
 			self.jackCommands += line + '\n'
+		print(self.jackCommands)
 
 	# probably not needed
 	def testLine(self, line: str):
@@ -138,7 +145,7 @@ class JackTokenizer:
 		# 0,1,2,3,4. when we're done with the last token, advance should
 		# increment the index to 5. thus, hasMoreTokens should return false
 		# if the commandIndex is greater than or equal to its length.
-		return self.commandIndex >= len(self.jackCommands)
+		return self.commandIndex < len(self.jackCommands)
 
 	def advance(self):
 		# keyword → starts with alphabetic character.
@@ -147,7 +154,14 @@ class JackTokenizer:
 		# make keywords list. append until next delimiter
 		# then check in keywords. if not keyword, probably an identifier
 
+		print(f'current char: {self.jackCommands[self.commandIndex]}')
 
+		stringBuffer: str = ''
+		while not self.__isDelimiter(self.jackCommands[self.commandIndex]):
+			stringBuffer += self.jackCommands[self.commandIndex]
+			self.commandIndex += 1
+		print(f'{stringBuffer}')
+		print(f'index: {self.commandIndex}')
 
 		# integerConstant: must be in "0123456789" until a delimiter
 
@@ -163,11 +177,11 @@ class JackTokenizer:
 		self.currentTokenType = TokenType.KEYWORD
 
 	# returns true if next char is ⎵, \n, symbol
-	def __detectDelimiter(self, char: str):
-		return self.__detectSymbol(char) or (char == ' ') or (char == '\n')
+	def __isDelimiter(self, char: str):
+		return self.__isSymbol(char) or (char == ' ') or (char == '\n')
 
 	# returns true if character input is in our symbols list
-	def __detectSymbol(self, char: str):
+	def __isSymbol(self, char: str):
 		return char in self.symbols
 
 	def getTokenType(self):
