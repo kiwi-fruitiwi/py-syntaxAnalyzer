@@ -73,6 +73,16 @@ class JackTokenizer:
 		self.commandIndex = 0  # current index in above string
 		self.currentCommand = None  # initially there is no current command
 		self.currentTokenType = None  # set in advance()
+
+		# these 5 are used by their respective accessors, e.g. symbol(),
+		# keyWord(), intVal(), stringVal(), identifier(). these are called
+		# only if the current tokenType matches. invalid otherwise.
+		self.currentSymbolValue = None
+		self.currentIdentifierValue = None
+		self.currentStrConstValue = None
+		self.currentIntConstValue = None
+		self.currentKeyWordValue = None
+
 		self.symbols = "{}[]().,;+-*/|<>=~"
 		self.keywords = [
 			'class',
@@ -161,6 +171,14 @@ class JackTokenizer:
 
 		print(f'current char: {self.jackCommands[self.commandIndex]}')
 
+		# detect symbols
+		currentChar: str = self.jackCommands[self.commandIndex]
+		if self.__isSymbol(currentChar):
+			self.currentTokenType = TokenType.SYMBOL
+			self.currentSymbolValue = currentChar
+			self.commandIndex += 1
+
+
 		stringBuffer: str = ''
 		while not self.__isDelimiter(self.jackCommands[self.commandIndex]):
 			stringBuffer += self.jackCommands[self.commandIndex]
@@ -206,17 +224,22 @@ class JackTokenizer:
 
 	def keyWord(self):
 		# assert tokenType
-		pass
+		assert self.currentTokenType == TokenType.KEYWORD
+		return self.currentKeyWordValue
 
 	def symbol(self):
-		pass
+		assert self.currentTokenType == TokenType.SYMBOL
+		return self.currentSymbolValue
 
 	def identifier(self):
-		pass
+		assert self.currentTokenType == TokenType.IDENTIFIER
+		return self.currentIdentifierValue
 
 	def intVal(self):
-		pass
+		assert self.currentTokenType == TokenType.INT_CONST
+		return self.currentIntConstValue
 
 	def stringVal(self):
-		pass
+		assert self.currentTokenType == TokenType.STRING_CONST
+		return self.currentStrConstValue
 
