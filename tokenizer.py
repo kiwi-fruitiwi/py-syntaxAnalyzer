@@ -154,14 +154,27 @@ class JackTokenizer:
 		# make keywords list. append until next delimiter
 		# then check in keywords. if not keyword, probably an identifier
 
+		# skip whitespace and newlines after tokens
+		currentChar: str = self.jackCommands[self.commandIndex]
+		if (currentChar == ' ') or (currentChar == '\n'):
+			self.commandIndex += 1
+
 		print(f'current char: {self.jackCommands[self.commandIndex]}')
 
 		stringBuffer: str = ''
 		while not self.__isDelimiter(self.jackCommands[self.commandIndex]):
 			stringBuffer += self.jackCommands[self.commandIndex]
 			self.commandIndex += 1
-		print(f'{stringBuffer}')
+		print(f'token: {stringBuffer}')
 		print(f'index: {self.commandIndex}')
+
+		# detect keyword
+		if self.__isKeyword(stringBuffer):
+			self.currentTokenType = TokenType.KEYWORD
+			print(f'tokenType {self.currentTokenType} detected')
+
+		# if it's not a keyword, it should be an identifier
+
 
 		# integerConstant: must be in "0123456789" until a delimiter
 
@@ -183,6 +196,10 @@ class JackTokenizer:
 	# returns true if character input is in our symbols list
 	def __isSymbol(self, char: str):
 		return char in self.symbols
+
+	# returns true if input string is a keyword
+	def __isKeyword(self, token: str):
+		return token in self.keywords
 
 	def getTokenType(self):
 		return self.currentTokenType

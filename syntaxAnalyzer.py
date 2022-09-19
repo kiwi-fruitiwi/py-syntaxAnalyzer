@@ -92,6 +92,7 @@ filename: str = 'test.jack'
 
 tk = JackTokenizer(filename)
 tk.advance()
+tk.advance()
 
 # main loop
 # while tk.hasMoreTokens():
