@@ -166,30 +166,38 @@ class JackTokenizer:
 
 		# skip whitespace and newlines after tokens
 		currentChar: str = self.jackCommands[self.commandIndex]
-		if (currentChar == ' ') or (currentChar == '\n'):
+		while (currentChar == ' ') or (currentChar == '\n'):
+			print(f'→ skipping index for ⎵ or newline\n')
 			self.commandIndex += 1
-
-		print(f'current char: {self.jackCommands[self.commandIndex]}')
+			currentChar = self.jackCommands[self.commandIndex]
 
 		# detect symbols
 		currentChar: str = self.jackCommands[self.commandIndex]
 		if self.__isSymbol(currentChar):
 			self.currentTokenType = TokenType.SYMBOL
 			self.currentSymbolValue = currentChar
+
+			print(f'{self.currentTokenType} detected: →{self.currentSymbolValue}←')
 			self.commandIndex += 1
+			return
 
 
 		stringBuffer: str = ''
 		while not self.__isDelimiter(self.jackCommands[self.commandIndex]):
 			stringBuffer += self.jackCommands[self.commandIndex]
 			self.commandIndex += 1
-		print(f'token: {stringBuffer}')
-		print(f'index: {self.commandIndex}')
 
 		# detect keyword
+		print(f'stringBuffer result: →{stringBuffer}←')
 		if self.__isKeyword(stringBuffer):
 			self.currentTokenType = TokenType.KEYWORD
-			print(f'tokenType {self.currentTokenType} detected')
+			print(f'{self.currentTokenType} detected: {stringBuffer}')
+		else:
+			self.currentTokenType = TokenType.IDENTIFIER
+			print(f'{self.currentTokenType} detected: {stringBuffer}')
+
+
+		print(f'ending index: {self.commandIndex}')
 
 		# if it's not a keyword, it should be an identifier
 
@@ -202,10 +210,6 @@ class JackTokenizer:
 		# throw error if second " doesn't exist on same line
 		# ignore spaces inside
 
-
-
-		# set token type
-		self.currentTokenType = TokenType.KEYWORD
 
 	# returns true if next char is ⎵, \n, symbol
 	def __isDelimiter(self, char: str):
