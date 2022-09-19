@@ -22,7 +22,6 @@
 <symbol> , </symbol>
 <identifier> sum </identifier>
 <symbol> ; </symbol>
-<identifier>  </identifier>
 <keyword> let </keyword>
 <identifier> length </identifier>
 <symbol> = </symbol>
@@ -48,11 +47,10 @@
 <symbol> = </symbol>
 <integerConstant> 0 </integerConstant>
 <symbol> ; </symbol>
-<identifier>  </identifier>
 <keyword> while </keyword>
 <symbol> ( </symbol>
 <identifier> i </identifier>
-<symbol> < </symbol>
+<symbol> &lt; </symbol>
 <identifier> length </identifier>
 <symbol> ) </symbol>
 <symbol> { </symbol>
@@ -77,7 +75,6 @@
 <integerConstant> 1 </integerConstant>
 <symbol> ; </symbol>
 <symbol> } </symbol>
-<identifier>  </identifier>
 <keyword> let </keyword>
 <identifier> i </identifier>
 <symbol> = </symbol>
@@ -88,11 +85,10 @@
 <symbol> = </symbol>
 <integerConstant> 0 </integerConstant>
 <symbol> ; </symbol>
-<identifier>  </identifier>
 <keyword> while </keyword>
 <symbol> ( </symbol>
 <identifier> i </identifier>
-<symbol> < </symbol>
+<symbol> &lt; </symbol>
 <identifier> length </identifier>
 <symbol> ) </symbol>
 <symbol> { </symbol>
@@ -114,7 +110,6 @@
 <integerConstant> 1 </integerConstant>
 <symbol> ; </symbol>
 <symbol> } </symbol>
-<identifier>  </identifier>
 <keyword> do </keyword>
 <identifier> Output </identifier>
 <symbol> . </symbol>
@@ -140,7 +135,6 @@
 <symbol> ( </symbol>
 <symbol> ) </symbol>
 <symbol> ; </symbol>
-<identifier>  </identifier>
 <keyword> return </keyword>
 <symbol> ; </symbol>
 <symbol> } </symbol>

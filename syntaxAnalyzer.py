@@ -122,5 +122,4 @@ while tk.hasMoreTokens():
     output.write(f'<{tagName}> {value} </{tagName}>\n')
     tk.advance()
 
-
-output.write(f'</tokens>')
+output.write(f'</tokens>\n')

@@ -111,6 +111,7 @@ class JackTokenizer:
 
 		for line in lines:
 			# ignore whitespace
+			print(f'{line}', end=" ")
 			if line == '\n':
 				continue
 
@@ -138,14 +139,11 @@ class JackTokenizer:
 			# combine lines into a single string separated by newlines
 			# later, we can count our current line via newline characters?
 			# unless newline chars are present in .jack file strings, too.
-			self.code += line + '\n'
-		print(self.code)
+			self.code += line
 
-	# probably not needed
-	def testLine(self, line: str):
-		# test function with single line input
-		self.i = 0
-		return
+		# unsure why this is needed
+		# all .jack files have extra newline at the end
+		self.code += '\n'
 
 	# unnecessary; not part of the API
 	def getJackCommands(self):
@@ -180,7 +178,17 @@ class JackTokenizer:
 		# 🏭 detect symbols
 		if self.__isSymbol(self.code[self.i]):
 			self.currentTokenType = TokenType.SYMBOL
-			self.currentSymbolValue = self.code[self.i]
+
+			symbol = self.code[self.i]
+			if symbol == '<':
+				self.currentSymbolValue = '&lt;'
+			elif symbol == '>':
+				self.currentSymbolValue = '&rt;'
+			elif symbol == '&':
+				self.currentSymbolValue = '&amp;'
+			else:  # TODO what happened to &quot; from lecture notes?
+				# " is not a symbol
+				self.currentSymbolValue = self.code[self.i]
 
 			# print(f'{self.currentTokenType} detected: →{self.currentSymbolValue}←')
 			self.i += 1
@@ -189,18 +197,20 @@ class JackTokenizer:
 		# 🏭 detect string constants
 		# 	search rest of string → isn't limited to one line which might be bad
 		if self.code[self.i] == '\"':
-			nextDoubleQuoteIndex = self.code[self.i+1:].index('\"') + self.i
+			nextDoubleQuoteIndex = self.code[self.i + 1:].index('\"') + self.i
 			# print(f'next double quote index: {nextDoubleQuoteIndex}')
 
 			self.currentTokenType = TokenType.STRING_CONST
-			self.currentStrConstValue = self.code[self.i+1:nextDoubleQuoteIndex+1]
+			self.currentStrConstValue = self.code[
+										self.i + 1:nextDoubleQuoteIndex + 1]
 			self.i += len(self.currentStrConstValue) + 2
 			return
 
 		# 🏭 detect integer constants: decimal numbers in range [0, 32767]
 		intBuilder: str = ''
 		if self.code[self.i] in self.digits:
-			while not self.__isDelimiter(self.code[self.i]) and self.code[self.i] in self.digits:
+			while not self.__isDelimiter(self.code[self.i]) and self.code[
+				self.i] in self.digits:
 				intBuilder += self.code[self.i]
 				self.i += 1
 
@@ -223,12 +233,12 @@ class JackTokenizer:
 		if self.__isKeyword(stringBuilder):
 			self.currentTokenType = TokenType.KEYWORD
 			self.currentKeyWordValue = stringBuilder
-			# print(f'{self.currentTokenType} detected: {stringBuilder}')
+		# print(f'{self.currentTokenType} detected: {stringBuilder}')
 		else:
 			# 🏭 detect identifier
 			self.currentTokenType = TokenType.IDENTIFIER
 			self.currentIdentifierValue = stringBuilder
-			# print(f'{self.currentTokenType} detected: {stringBuilder}')
+		# print(f'{self.currentTokenType} detected: {stringBuilder}')
 
 	# returns true if next char is ⎵, \n, symbol
 	def __isDelimiter(self, char: str):
@@ -265,4 +275,3 @@ class JackTokenizer:
 	def stringVal(self):
 		assert self.currentTokenType == TokenType.STRING_CONST
 		return self.currentStrConstValue
-
