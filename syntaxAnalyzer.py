@@ -86,13 +86,13 @@ from pathlib import Path
 import os
 
 root: str = 'C:/Dropbox/code/nand2tetris/kiwi/nand2tetris/projects/'
-filename: str = root + '10/ArrayTest/Main.jack'
+filename: str = root + '10/Square/Main.jack'
 # filename: str = 'test.jack'
 
 tk = JackTokenizer(filename)
 tk.advance()
 
-output = open('tests/ArrayTest/output.xml', 'w')
+output = open('tests/Square/output.xml', 'w')
 
 output.write(f'<tokens>\n')
 

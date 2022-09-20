@@ -112,6 +112,7 @@ class JackTokenizer:
 		for line in lines:
 			# ignore whitespace
 			print(f'{line}', end=" ")
+
 			if line == '\n':
 				continue
 
@@ -150,7 +151,9 @@ class JackTokenizer:
 		return self.code
 
 	def hasMoreTokens(self):
-		# let's say the command string is length 5. we've processed indices
+		# returns true if there are more tokens in the input file
+		#
+		# e.g. let's say the command string is length 5. we've processed indices
 		# 0,1,2,3,4. when we're done with the last token, advance should
 		# increment the index to 5. thus, hasMoreTokens should return false
 		# if the commandIndex is greater than or equal to its length.
@@ -160,85 +163,99 @@ class JackTokenizer:
 		# 🏭 skip whitespace(s) and single newlines after tokens
 		# lines cannot start with spaces, which the constructor handles w/trim()
 		while self.code[self.i] == ' ':
-			# print(f'→ skipping index for ⎵: {self.code[self.i]}.\n')
 			self.i += 1
 			if not self.hasMoreTokens():
 				return
 
 		if self.code[self.i] == '\n':  # constructor ensures no double \n
-			# print(f'→ skipping index for newline: {self.code[self.i]}.\n')
 			self.i += 1
 			if not self.hasMoreTokens():
 				return
 
 		# every lexical category needs to:
-		# 	set currentTokenType, currentSymbolValue
-		#	increment code index, i, appropriately
+		# 1. set self.currentTokenType
+		# 2. set self.currentSymbolValue
+		# 3. appropriately increment code index, self.i
+		firstChar = self.code[self.i] # the first character in our new token!
 
-		# 🏭 detect symbols
-		if self.__isSymbol(self.code[self.i]):
-			self.currentTokenType = TokenType.SYMBOL
-
-			symbol = self.code[self.i]
-			if symbol == '<':
-				self.currentSymbolValue = '&lt;'
-			elif symbol == '>':
-				self.currentSymbolValue = '&rt;'
-			elif symbol == '&':
-				self.currentSymbolValue = '&amp;'
-			else:  # TODO what happened to &quot; from lecture notes?
-				# " is not a symbol
-				self.currentSymbolValue = self.code[self.i]
-
-			# print(f'{self.currentTokenType} detected: →{self.currentSymbolValue}←')
-			self.i += 1
+		if self.__isSymbol(firstChar):
+			self.__processSymbol()
 			return
 
 		# 🏭 detect string constants
 		# 	search rest of string → isn't limited to one line which might be bad
-		if self.code[self.i] == '\"':
-			nextDoubleQuoteIndex = self.code[self.i + 1:].index('\"') + self.i
-			# print(f'next double quote index: {nextDoubleQuoteIndex}')
-
-			self.currentTokenType = TokenType.STRING_CONST
-			self.currentStrConstValue = self.code[
-										self.i + 1:nextDoubleQuoteIndex + 1]
-			self.i += len(self.currentStrConstValue) + 2
+		if firstChar == '\"':
+			self.__processStringConstant()
 			return
 
 		# 🏭 detect integer constants: decimal numbers in range [0, 32767]
-		intBuilder: str = ''
-		if self.code[self.i] in self.digits:
-			while not self.__isDelimiter(self.code[self.i]) and self.code[
-				self.i] in self.digits:
-				intBuilder += self.code[self.i]
-				self.i += 1
-
-			# assert value does not overflow, according to spec
-			assert 0 <= int(intBuilder) <= 32767
-
-			self.currentTokenType = TokenType.INT_CONST
-			self.currentIntConstValue = intBuilder
-			# print(f'{self.currentTokenType} detected: {intBuilder}')
+		if firstChar in self.digits:
+			self.__processIntConstant()
 			return
 
 		# 🏭 now it's either a keyword or identifier. let's build a string!
+		self.__processKeywordIdentifier()
+		return
+
+	# helper function to process symbols
+	def __processSymbol(self):
+		sym = self.code[self.i]
+		# special cases for html character codes
+		match sym:
+			case '<':
+				self.currentSymbolValue = '&lt;'
+			case '>':
+				self.currentSymbolValue = '&rt;'
+			case '&':
+				self.currentSymbolValue = '&amp;'
+			case _:  # TODO what happened to &quot; from lecture notes?
+				# note that " is not a symbol
+				self.currentSymbolValue = sym
+
+		self.currentTokenType = TokenType.SYMBOL
+		self.i += 1
+
+	# helper function to process string constants
+	def __processStringConstant(self):
+		nextDoubleQuoteIndex = self.code[self.i + 1:].index('\"') + self.i
+
+		self.currentTokenType = TokenType.STRING_CONST
+		self.currentStrConstValue = self.code[
+									self.i + 1:nextDoubleQuoteIndex + 1]
+		self.i += len(self.currentStrConstValue) + 2
+
+	# helper function to process keywords and identifiers
+	def __processKeywordIdentifier(self):
 		stringBuilder: str = ''
 		while not self.__isDelimiter(self.code[self.i]):
 			stringBuilder += self.code[self.i]
 			self.i += 1
 
 		# 🏭 detect keyword
-		# print(f'stringBuffer result: →{stringBuilder}←')
 		if self.__isKeyword(stringBuilder):
 			self.currentTokenType = TokenType.KEYWORD
 			self.currentKeyWordValue = stringBuilder
-		# print(f'{self.currentTokenType} detected: {stringBuilder}')
 		else:
-			# 🏭 detect identifier
+			# 🏭 detect identifier; imperfect as we'd need checks on valid chars
 			self.currentTokenType = TokenType.IDENTIFIER
 			self.currentIdentifierValue = stringBuilder
-		# print(f'{self.currentTokenType} detected: {stringBuilder}')
+
+	# helper function to process integer constant tokens
+	def __processIntConstant(self):
+		# build our int while we
+		# 1: don't hit a delimiter, and
+		# 2: we keep hitting digits
+		intBuilder: str = ''
+		while not self.__isDelimiter(self.code[self.i]) and self.code[
+			self.i] in self.digits:
+			intBuilder += self.code[self.i]
+			self.i += 1
+
+		# assert value does not overflow, according to spec
+		assert 0 <= int(intBuilder) <= 32767
+
+		self.currentTokenType = TokenType.INT_CONST
+		self.currentIntConstValue = intBuilder
 
 	# returns true if next char is ⎵, \n, symbol
 	def __isDelimiter(self, char: str):
