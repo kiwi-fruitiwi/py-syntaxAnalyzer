@@ -217,11 +217,12 @@ class JackTokenizer:
 
 	# helper function to process string constants
 	def __processStringConstant(self):
-		nextDoubleQuoteIndex = self.code[self.i + 1:].index('\"') + self.i
-
+		# given: the current character is a double quote; now we need to find the next double quote. code[i+1:] gives the 'rest' of the code
+		nextDblQuoteIndex = self.code[self.i+1:].index('\"') + self.i
 		self.currentTokenType = TokenType.STRING_CONST
-		self.currentStrConstValue = self.code[
-									self.i + 1:nextDoubleQuoteIndex + 1]
+
+		# it's ndqi+1 because the slice endpoint is not inclusive
+		self.currentStrConstValue = self.code[self.i+1: nextDblQuoteIndex+1]
 		self.i += len(self.currentStrConstValue) + 2
 
 	# helper function to process keywords and identifiers
