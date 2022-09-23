@@ -60,26 +60,77 @@
 #
 
 class CompilationEngine:
+	"""
+	The compilationEngine generates the compiler's output
+	"""
+
+	# compiles a complete class
+	def compileClass(self):
+		pass
+
+	# compiles a static variable or field declaration
+	def compileClassVarDec(self):
+		pass
+
+	# compiles a complete method, function, or constructor
+	def compileSubroutineDec(self):
+		pass
+
+	# compiles a (possibly empty) parameter list. does not handle enclosing '()'
+	def compileParameterList(self):
+		pass
+
+	# compiles a subroutine's body
+	def compileSubroutineBody(self):
+		pass
+
+	# compiles a var declaration
+	def compileVarDec(self):
+		pass
+
+	# compiles a sequence of statements. does not handle enclosing '{}'
 	def compileStatements(self):
 		pass
 
-	def compileIfStatement(self):
+	def compileLet(self):
 		pass
 
-	def compileWhileStatement(self):
+	# compiles an if statement, possibly with a trailing else clause
+	def compileIf(self):
+		pass
+
+	def compileWhile(self):
 		self.eat('while')
 		self.eat(')')
 		self.compileExpression()
 		self.eat(')')
 
+	def compileDo(self):
+		pass
+
+	def compileReturn(self):
+		pass
+
+	# compiles a term. if the current token is an identifier, the routine must
+	# distinguish between a variable, an array entry, or a subroutine call. a
+	# single look-ahead token, which may be one of [, (, or ., suffices to
+	# distinguish between the possibilities. any other token is not part of this
+	# term and should not be advanced over.
+	def compileTerm(self):
+		pass
+
 	def compileExpression(self):
 		pass
 
-	# insert all the rules, minus the 5:
-	# type, className, subRoutineName, variableName, statement, subroutineCall
-
-	def compileTerm(self):
+	# compiles a (possibly empty) comma-separated list of expressions
+	def compileExpressionList(self):
 		pass
 
 	def eat(self, token: str):
 		pass
+
+	# every rule has an associated compile method (15 total methods) except 6:
+	# type, className, subRoutineName, variableName, statement, subroutineCall
+	# the logic of these 6 rules is handled by the rules who invoke them
+	# e.g. there is no compileStatement because statement has subtypes and it's
+	# split into compileIf, compileWhile, etc.
