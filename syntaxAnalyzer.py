@@ -88,12 +88,13 @@ import os
 
 def generateTokensFromJack():
     root: str = 'C:/Dropbox/code/nand2tetris/kiwi/nand2tetris/projects/'
-    filename: str = root + '10/ArrayTest/Main.jack'
-    # filename: str = 'test.jack'
+    # filename: str = root + '10/ArrayTest/Main.jack'
+    filename: str = 'test.jack'
 
     tk = JackTokenizer(filename)
     tk.advance()
-    output = open('tests/ArrayTest/output.xml', 'w')
+    # output = open('tests/ArrayTest/output.xml', 'w')
+    output = open('output.xml', 'w')
     output.write(f'<tokens>\n')
 
     # main loop
@@ -125,4 +126,13 @@ def generateTokensFromJack():
     output.write(f'</tokens>\n')
 
 
-generateTokensFromJack()
+# generateTokensFromJack()
+
+def generateCompilationEngineOutput():
+    root: str = 'C:/Dropbox/code/nand2tetris/kiwi/nand2tetris/projects/'
+    # filename: str = root + '10/ArrayTest/Main.jack'
+    filename: str = 'test.jack'
+    outputUri = 'compEngineOutput.xml'
+
+    ce = CompilationEngine(filename, outputUri)
+    ce.compileClass()

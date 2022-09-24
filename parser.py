@@ -55,6 +55,10 @@
 # 	op:				+, -, =, >, <
 #
 
+
+from tokenizer import JackTokenizer
+
+
 class CompilationEngine:
 	"""
 	The compilationEngine generates the compiler's output
@@ -62,7 +66,12 @@ class CompilationEngine:
 
 	# creates a new compilation engine with the given input and output
 	# the next routine called must be compileClass
-	def __init__(self, inputTokenizer, outputXML):
+	def __init__(self, inputJackUri, outputXmlUri):
+
+		# create a Tokenizer object from the inputURI
+		self.tk = JackTokenizer(inputJackUri)
+		# open file for writing with URI=outputXML
+		self.out = open(outputXmlUri, 'w')
 
 		pass
 
@@ -94,6 +103,7 @@ class CompilationEngine:
 	def compileStatements(self):
 		pass
 
+	# 'let' varName ('[' expression ']')? '=' expression ';'
 	def compileLet(self):
 		pass
 
@@ -128,12 +138,12 @@ class CompilationEngine:
 	def compileExpressionList(self):
 		pass
 
-	def eat(self, expectedToken: str, tokenizerToken: str):
+	def eat(self, expectedToken: str):
 		# expected token ← what the compile_ method that calls eat expects
 		# actual tokenizer token ← tokenizer.advance
 
 		# assert expectedToken matches actual token
-		assert expectedToken == tokenizerToken
+		assert expectedToken == self.tk.advance()
 		pass
 
 	# every rule has an associated compile method (15 total methods) except 6:
