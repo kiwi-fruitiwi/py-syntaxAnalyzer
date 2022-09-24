@@ -8,45 +8,41 @@
 # the tokenizer handles lexical elements, while the compilationEngine handles
 # the following: program structure, statements, and expressions
 #
-# program structure →
-# 	class: 'class' className '{' classVarDec* subroutineDec* '}'
-#	classVarDec: static|field type varName(,varName)*;
-#	type: int char boolean className
-#	subroutineDec: (constructor|function|method)
-#		(void|type) subroutineName(parameterList) subroutineBody
-#	parameterList: (type varName) (, type varName)*)?
-#	subroutineBody: {varDec* statements}
-#	varDec: var type varName (, varName)*;
-#	className: identifier
-#	subroutineName: identifier
-#	varName: identifier
+#   program structure →
+#     class: 'class' className '{' classVarDec* subroutineDec* '}'
+#     classVarDec: static|field type varName(,varName)*;
+# 	  type: int char boolean className
+#     subroutineDec: (constructor|function|method)
+#     	(void|type) subroutineName(parameterList) subroutineBody
+#     parameterList: (type varName) (, type varName)*)?
+#     subroutineBody: {varDec* statements}
+#     varDec: var type varName (, varName)*;
+#     className: identifier
+#     subroutineName: identifier
+#     varName: identifier
 #
-# statements →
-#	statements: statement*
-#	statement: letStatement ifStatement whileStatement doStatement returnStatement
-#	letStatement: let varName([expression])? = expression;
-#	ifStatement: if(expression){statements}(else{statements})?
-#	whileStatement: while(expression){statements}
-#	doStatement: do subroutineCall;
-#	returnStatement: return expression?;
+#   statements →
+#     statements: statement*
+#     statement: let if while do return
+#     letStatement: let varName([expression])? = expression;
+#     ifStatement: if(expression){statements}(else{statements})?
+#     whileStatement: while(expression){statements}
+#     doStatement: do subroutineCall;
+#     returnStatement: return expression?;
 #
-# expressions →
-#	expression: term (op term)*
-#	term: integerConstant | stringConstant | keywordConstant | varName |
-#		varName[expression] | subroutineCall | (expression) | unaryOp term
-#	subroutineCall: subName(expressionList) |
-#		(className | varName).subroutineName(expressionList)
-#	expressionList: (expression(, expression)*)?
-#	op: + - * / & | < > =
-#	unaryOp: - ~
-#	keywordConstant: true false null this
+#   expressions →
+#	  expression: term (op term)*
+#	  term: integerConstant | stringConstant | keywordConstant | varName |
+#	  	varName[expression] | subroutineCall | (expression) | unaryOp term
+#	  subroutineCall: subName(expressionList) |
+#	  	(className | varName).subroutineName(expressionList)
+#	  expressionList: (expression(, expression)*)?
+#	  op: + - * / & | < > =
+#	  unaryOp: - ~
+#	  keywordConstant: true false null this
 #
-#
-#
-#
-#
-#
-# ? statements → a Jack program includes statements, as follows:
+# ⊼².📹 4.5 parser logic recursion
+#	statements → a Jack program includes statements, as follows:
 # 	statement: 		ifStatement | whiteStatement | letStatement
 # 	statements:		statement*
 # 	ifStatement:	if (expression) {statements}
@@ -64,7 +60,13 @@ class CompilationEngine:
 	The compilationEngine generates the compiler's output
 	"""
 
-	# compiles a complete class
+	# creates a new compilation engine with the given input and output
+	# the next routine called must be compileClass
+	def __init__(self, inputTokenizer, outputXML):
+
+		pass
+
+	# compiles a complete class. called after the constructor
 	def compileClass(self):
 		pass
 
@@ -126,7 +128,12 @@ class CompilationEngine:
 	def compileExpressionList(self):
 		pass
 
-	def eat(self, token: str):
+	def eat(self, expectedToken: str, tokenizerToken: str):
+		# expected token ← what the compile_ method that calls eat expects
+		# actual tokenizer token ← tokenizer.advance
+
+		# assert expectedToken matches actual token
+		assert expectedToken == tokenizerToken
 		pass
 
 	# every rule has an associated compile method (15 total methods) except 6:
