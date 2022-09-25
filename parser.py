@@ -111,11 +111,29 @@ class CompilationEngine:
 	def compileIf(self):
 		pass
 
+	# 'while' '(' expression ')' '{' statements '}'
 	def compileWhile(self):
+		o = self.out
+
+		# 'while'
 		self.eat('while')
-		self.eat(')')
+		o.write('<whileStatement>\n')
+		o.write('<keyword> while </keyword>\n')
+
+		# '(' expression ')'
+		self.eat('(')
+		o.write('<symbol> ( </symbol>')
 		self.compileExpression()
 		self.eat(')')
+		o.write('<symbol> ) </symbol>')
+
+		# '{' statements '}'
+		self.eat('{')
+		o.write('<symbol> { </symbol>')
+		self.compileStatements()
+		self.eat('}')
+		o.write('<symbol> } </symbol>')
+		o.write('</whileStatement>\n')
 
 	def compileDo(self):
 		pass
@@ -131,6 +149,7 @@ class CompilationEngine:
 	def compileTerm(self):
 		pass
 
+	# not used in the first pass
 	def compileExpression(self):
 		pass
 
