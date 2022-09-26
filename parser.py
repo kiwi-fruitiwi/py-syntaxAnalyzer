@@ -103,7 +103,7 @@ class CompilationEngine:
 	def compileStatements(self):
 		pass
 
-	# 'let' varName ('[' expression ']')? '=' expression ';'
+	# TODO 'let' varName ('[' expression ']')? '=' expression ';'
 	def compileLet(self):
 		pass
 
@@ -147,11 +147,19 @@ class CompilationEngine:
 	# distinguish between the possibilities. any other token is not part of this
 	# term and should not be advanced over.
 	def compileTerm(self):
+
+		# TODO varName | constant, but the full grammar rule is:
+		# integerConstant stringConstant keywordConstant varName
+		# varName '[' expression ']' subroutineCall '(' expression ')'
+		# unaryOp term
 		pass
 
 	# not used in the first pass
 	def compileExpression(self):
-		pass
+		# temporarily call compileTerm for expressionLessSquare testing
+		# when we're ready to test expressions, then we can test Square
+
+		self.compileTerm()
 
 	# compiles a (possibly empty) comma-separated list of expressions
 	def compileExpressionList(self):
