@@ -105,7 +105,19 @@ class CompilationEngine:
 
 	# TODO 'let' varName ('[' expression ']')? '=' expression ';'
 	def compileLet(self):
+		o = self.out
+
+		# 'let'
 		self.eat('let')
+		o.write('<letStatement>\n')
+		o.write('<keyword> let </keyword>\n')
+
+		# varName → compile varName?
+		# if next token != '=', eat('['), compileExpr, eat(']')
+		# if it's '=', eat it, compileExpr, eat(';')
+
+		o.write('<symbol> ; </symbol>')
+		o.write('</letStatement>\n')
 
 		pass
 
