@@ -116,7 +116,7 @@ def generateTokensFromJack():
             case TokenType.STRING_CONST:
                 value = tk.stringVal()
                 tagName = 'stringConstant'
-            case default:
+            case _:
                 raise TypeError(f'token type invalid: not keyword, symbol, '
                                 f'identifier, int constant, or string constant.')
 

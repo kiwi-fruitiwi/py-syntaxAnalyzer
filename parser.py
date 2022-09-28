@@ -56,7 +56,7 @@
 #
 
 
-from tokenizer import JackTokenizer
+from tokenizer import JackTokenizer, TokenType
 
 
 class CompilationEngine:
@@ -105,6 +105,8 @@ class CompilationEngine:
 
 	# TODO 'let' varName ('[' expression ']')? '=' expression ';'
 	def compileLet(self):
+		self.eat('let')
+
 		pass
 
 	# compiles an if statement, possibly with a trailing else clause
@@ -168,13 +170,30 @@ class CompilationEngine:
 	def eat(self, expectedToken: str):
 		# expected token ← what the compile_ method that calls eat expects
 		# actual tokenizer token ← tokenizer.advance
+		self.tk.advance()
+		tokenType = self.tk.getTokenType()  # current token
+
+		match tokenType:  # determine value of token
+			case TokenType.KEYWORD:
+				value = self.tk.keyWord()
+			case TokenType.SYMBOL:
+				value = self.tk.symbol()
+			case TokenType.IDENTIFIER:
+				value = self.tk.identifier()
+			case TokenType.INT_CONST:
+				value = self.tk.intVal()
+			case TokenType.STRING_CONST:
+				value = self.tk.stringVal()
+			case _:
+				raise TypeError(f'token type invalid: not keyword, symbol, '
+								  f'identifier, int constant, or string constant.')
 
 		# assert expectedToken matches actual token
-		assert expectedToken == self.tk.advance()
+		assert expectedToken == value
 		pass
 
-	# every rule has an associated compile method (15 total methods) except 6:
-	# type, className, subRoutineName, variableName, statement, subroutineCall
-	# the logic of these 6 rules is handled by the rules who invoke them
-	# e.g. there is no compileStatement because statement has subtypes and it's
-	# split into compileIf, compileWhile, etc.
+# every rule has an associated compile method (15 total methods) except 6:
+# type, className, subRoutineName, variableName, statement, subroutineCall
+# the logic of these 6 rules is handled by the rules who invoke them
+# e.g. there is no compileStatement because statement has subtypes and it's
+# split into compileIf, compileWhile, etc.
