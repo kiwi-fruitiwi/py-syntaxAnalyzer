@@ -103,6 +103,18 @@ class CompilationEngine:
 	def compileStatements(self):
 		pass
 
+	# eats token = identifier, checks type
+	def compileIdentifier(self):
+		o = self.out  # makes code more readable
+
+		# we actually don't eat because we're not sure what identifier it is
+		# instead, we advance and assert tokenType
+		self.tk.advance()
+		assert self.tk.getTokenType == TokenType.IDENTIFIER
+
+		# then write <identifier> value </identifier>
+		o.write(f'<identifier> {self.tk.currentIdentifierValue} </identifier>')
+
 	# TODO 'let' varName ('[' expression ']')? '=' expression ';'
 	def compileLet(self):
 		o = self.out
@@ -113,8 +125,16 @@ class CompilationEngine:
 		o.write('<keyword> let </keyword>\n')
 
 		# varName → compile varName?
+		# className, varName, subRName all identifiers ← 'program structure'
+		self.compileIdentifier()
+
 		# if next token != '=', eat('['), compileExpr, eat(']')
 		# if it's '=', eat it, compileExpr, eat(';')
+
+		self.eat('=')
+		o.write('<symbol> = </symbol>')
+
+		self.compileExpression()
 
 		o.write('<symbol> ; </symbol>')
 		o.write('</letStatement>\n')
