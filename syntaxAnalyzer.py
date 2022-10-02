@@ -77,7 +77,7 @@ project contract
 
 # take care of multiple files in a directory vs one target file
 
-from parser import CompilationEngine
+from compilationEngine import CompilationEngine
 
 from tokenizer import JackTokenizer
 from tokenizer import TokenType
