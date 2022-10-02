@@ -76,9 +76,11 @@ class CompilationEngine:
 
 	# compiles a complete class. called after the constructor
 	def compileClass(self):
+		o = self.out
+		o.write('<class>\n')
 		while self.tk.hasMoreTokens():
-			print(f'current token in compileClass: {self.tk.currentTokenType}')
 			self.compileLet()
+		o.write('</class>\n')
 
 	# compiles a static variable or field declaration
 	def compileClassVarDec(self):
@@ -115,7 +117,7 @@ class CompilationEngine:
 		assert self.tk.getTokenType() == TokenType.IDENTIFIER
 
 		# then write <identifier> value </identifier>
-		o.write(f'<identifier> {self.tk.currentIdentifierValue} </identifier>\n')
+		o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
 
 	# letStatement: 'let' varName ('[' expression ']')? '=' expression ';'
 	def compileLet(self):
@@ -135,18 +137,19 @@ class CompilationEngine:
 
 		# assert it's a symbol
 		assert self.tk.getTokenType() == TokenType.SYMBOL
-		assert self.tk.currentSymbolValue == '[' or self.tk.currentSymbolValue == '='
+		assert self.tk.symbol() == '[' or self.tk.symbol() == '='
 
 		# if next token is '[', eat('['), compileExpr, eat(']')
-		if self.tk.currentSymbolValue == '[':
+		if self.tk.symbol() == '[':
 			self.eat('[', advance=False)
 			self.compileExpression()
 			self.eat(']')
 
 		# if it's '=', eat it, compileExpr, eat(';')
-		if self.tk.currentSymbolValue == '=':
+		if self.tk.symbol() == '=':
 			self.eat('=', advance=False)
 			o.write('<symbol> = </symbol>\n')
+
 			# TODO # for expressionLess, use term: id, strC, intC
 			# TODO can also be true, false, null, this ← keywords!
 			self.compileExpression()
@@ -216,22 +219,22 @@ class CompilationEngine:
 		self.tk.advance()
 		match self.tk.getTokenType():
 			case TokenType.IDENTIFIER:
-				value = self.tk.currentIdentifierValue
+				value = self.tk.identifier()
 				o.write(f'<identifier> {value} </identifier>\n')
 			case TokenType.KEYWORD:
-				value = self.tk.currentKeyWordValue
+				value = self.tk.keyWord()
 				assert value in ['true', 'false', 'null', 'this'], value
 				o.write(f'<keyword> {value} </keyword>\n')
 			case TokenType.INT_CONST:
-				value = self.tk.currentIntConstValue
+				value = self.tk.intVal()
 				o.write(f'<integerConstant> {value} </integerConstant>\n')
 			case TokenType.STRING_CONST:
-				value = self.tk.currentStrConstValue
+				value = self.tk.stringVal()
 				o.write(f'<stringConstant> {value} </stringConstant>\n')
 			case TokenType.SYMBOL:
 				# 🏭 advance one more time to detect '[' for varName[expr]
 				# or '(' for subroutineCall(expr). detect unaryOp term
-				value = self.tk.currentKeyWordValue
+				value = self.tk.symbol()
 				match value:
 					case '[':
 						print(f'varName[expr] detected! doing nothing')
@@ -283,12 +286,10 @@ class CompilationEngine:
 				value = self.tk.stringVal()
 			case _:
 				raise TypeError(f'token type invalid: not keyword, symbol, '
-								  f'identifier, int constant, or string constant.')
-
+								  f'identifier, int constant, or string constant: {tokenType}')
 		# assert expectedToken matches actual token
-
-		print(f'[ate] ← {value}')
-		assert expectedToken == value, f'expected: {expectedToken}, value:{value}'
+		# print(f'[eating → {value}]')
+		assert expectedToken == value, f'expected: {expectedToken}, actual:{value}'
 
 # every rule has an associated compile method (15 total methods) except 6:
 # type, className, subRoutineName, variableName, statement, subroutineCall

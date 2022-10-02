@@ -1,13 +1,23 @@
-<tokens>
+<class>
+<letStatement>
 <keyword> let </keyword>
-<identifier> x </identifier>
+<identifier> y </identifier>
 <symbol> = </symbol>
-<identifier> x </identifier>
-<symbol> * </symbol>
-<symbol> ( </symbol>
-<identifier> x </identifier>
-<symbol> + </symbol>
-<integerConstant> 1 </integerConstant>
-<symbol> ) </symbol>
+<integerConstant> 0 </integerConstant>
 <symbol> ; </symbol>
-</tokens>
+</letStatement>
+<letStatement>
+<keyword> let </keyword>
+<identifier> str </identifier>
+<symbol> = </symbol>
+<stringConstant> string constant test </stringConstant>
+<symbol> ; </symbol>
+</letStatement>
+<letStatement>
+<keyword> let </keyword>
+<identifier> number_1 </identifier>
+<symbol> = </symbol>
+<integerConstant> 2751 </integerConstant>
+<symbol> ; </symbol>
+</letStatement>
+</class>

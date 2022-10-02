@@ -131,16 +131,15 @@ class JackTokenizer:
 	def hasMoreTokens(self):
 		# returns true if there are more tokens in the input file
 		#
-		# e.g. let's say the command string is length 5. we've processed indices
-		# 0,1,2,3,4. when we're done with the last token, advance should
-		# increment the index to 5. thus, hasMoreTokens should return false
-		# if the commandIndex is greater than or equal to its length.
-		return self.i < len(self.code)
+		# example: [0,1,2,3,4]
+		# let's say the command string is length 5. if we're at index 3, we
+		# still have one more index, 4, to see. if we're at index 4, that means
+		# we're done and hasMoreTokens should return false.
+		#
+		# note that all .jack files have an extra newline at the end
+		return self.i < len(self.code) - 1
 
 	def advance(self):
-		# TODO remove this debug txt
-		# print(f'{self.code[self.i]}')
-
 		# 🏭 skip whitespace(s) and single newlines after tokens
 		# lines cannot start with spaces, which the constructor handles w/trim()
 		while self.code[self.i] == ' ':
