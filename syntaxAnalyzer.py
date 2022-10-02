@@ -136,3 +136,6 @@ def generateCompilationEngineOutput():
 
     ce = CompilationEngine(filename, outputUri)
     ce.compileClass()
+
+
+generateCompilationEngineOutput()

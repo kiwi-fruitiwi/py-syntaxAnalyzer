@@ -111,7 +111,9 @@ class JackTokenizer:
 
 		for line in lines:
 			# ignore whitespace
-			print(f'{line}', end=" ")
+
+			# debug text
+			# print(f'{line}', end=" ")
 
 			if line == '\n':
 				continue
@@ -160,6 +162,9 @@ class JackTokenizer:
 		return self.i < len(self.code)
 
 	def advance(self):
+		# TODO remove this debug txt
+		# print(f'{self.code[self.i]}')
+
 		# 🏭 skip whitespace(s) and single newlines after tokens
 		# lines cannot start with spaces, which the constructor handles w/trim()
 		while self.code[self.i] == ' ':
@@ -215,6 +220,9 @@ class JackTokenizer:
 		self.currentTokenType = TokenType.SYMBOL
 		self.i += 1
 
+		# debug print
+		print(f'symbol → {sym}')
+
 	# helper function to process string constants
 	def __processStringConstant(self):
 		# given: the current character is a double quote; now we need to find the next double quote. code[i+1:] gives the 'rest' of the code
@@ -224,6 +232,9 @@ class JackTokenizer:
 		# it's ndqi+1 because the slice endpoint is not inclusive
 		self.currentStrConstValue = self.code[self.i+1: nextDblQuoteIndex+1]
 		self.i += len(self.currentStrConstValue) + 2
+
+		# debug print
+		print(f'stringConstant → {self.currentStrConstValue}')
 
 	# helper function to process keywords and identifiers
 	def __processKeywordIdentifier(self):
@@ -236,10 +247,17 @@ class JackTokenizer:
 		if self.__isKeyword(stringBuilder):
 			self.currentTokenType = TokenType.KEYWORD
 			self.currentKeyWordValue = stringBuilder
+
+			# debug print
+			print(f'keyword → {self.currentKeyWordValue}')
 		else:
 			# 🏭 detect identifier; imperfect as we'd need checks on valid chars
 			self.currentTokenType = TokenType.IDENTIFIER
 			self.currentIdentifierValue = stringBuilder
+
+			# debug print
+			print(f'identifier → {self.currentIdentifierValue}')
+			# print(f'{self.currentTokenType}')
 
 	# helper function to process integer constant tokens
 	def __processIntConstant(self):
@@ -257,6 +275,9 @@ class JackTokenizer:
 
 		self.currentTokenType = TokenType.INT_CONST
 		self.currentIntConstValue = intBuilder
+
+		# debug print
+		print(f'intConstant → {self.currentIntConstValue}')
 
 	# returns true if next char is ⎵, \n, symbol
 	def __isDelimiter(self, char: str):

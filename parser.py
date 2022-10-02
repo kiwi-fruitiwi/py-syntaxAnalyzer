@@ -67,7 +67,6 @@ class CompilationEngine:
 	# creates a new compilation engine with the given input and output
 	# the next routine called must be compileClass
 	def __init__(self, inputJackUri, outputXmlUri):
-
 		# create a Tokenizer object from the inputURI
 		self.tk = JackTokenizer(inputJackUri)
 		# open file for writing with URI=outputXML
@@ -77,6 +76,9 @@ class CompilationEngine:
 
 	# compiles a complete class. called after the constructor
 	def compileClass(self):
+		# while self.tk.hasMoreTokens():
+		# 	tokenClassification = self.tk.getTokenType()
+		self.compileLet()
 		pass
 
 	# compiles a static variable or field declaration
@@ -110,7 +112,8 @@ class CompilationEngine:
 		# we actually don't eat because we're not sure what identifier it is
 		# instead, we advance and assert tokenType
 		self.tk.advance()
-		assert self.tk.getTokenType == TokenType.IDENTIFIER
+		# print(f'{self.tk.getTokenType()}')
+		assert self.tk.getTokenType() == TokenType.IDENTIFIER
 
 		# then write <identifier> value </identifier>
 		o.write(f'<identifier> {self.tk.currentIdentifierValue} </identifier>')
@@ -133,18 +136,17 @@ class CompilationEngine:
 
 		# assert it's a symbol
 		assert self.tk.getTokenType() == TokenType.SYMBOL
-		assert self.tk.currentSymbolValue == '[' or \
-			self.tk.currentSymbolValue == '='
+		assert self.tk.currentSymbolValue == '[' or self.tk.currentSymbolValue == '='
 
 		# if next token is '[', eat('['), compileExpr, eat(']')
 		if self.tk.currentSymbolValue == '[':
-			self.eat('[')
+			self.eat('[', advance=False)
 			self.compileExpression()
 			self.eat(']')
 
 		# if it's '=', eat it, compileExpr, eat(';')
 		if self.tk.currentSymbolValue == '=':
-			self.eat('=')
+			self.eat('=', advance=False)
 			o.write('<symbol> = </symbol>')
 			# TODO # for expressionLess, use term: id, strC, intC
 			# TODO can also be true, false, null, this ← keywords!
@@ -204,8 +206,7 @@ class CompilationEngine:
 	def compileExpression(self):
 		# temporarily call compileTerm for expressionLessSquare testing
 		# when we're ready to test expressions, then we can test Square
-
-		self.compileTerm()
+ 		self.compileTerm()
 
 	# compiles a (possibly empty) comma-separated list of expressions
 	def compileExpressionList(self):
@@ -241,8 +242,9 @@ class CompilationEngine:
 								  f'identifier, int constant, or string constant.')
 
 		# assert expectedToken matches actual token
-		assert expectedToken == value
-		pass
+
+		print(f'ate ← {value}')
+		assert expectedToken == value, f'expected: {expectedToken}, value:{value}'
 
 # every rule has an associated compile method (15 total methods) except 6:
 # type, className, subRoutineName, variableName, statement, subroutineCall
