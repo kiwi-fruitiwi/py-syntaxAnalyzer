@@ -76,10 +76,9 @@ class CompilationEngine:
 
 	# compiles a complete class. called after the constructor
 	def compileClass(self):
-		# while self.tk.hasMoreTokens():
-		# 	tokenClassification = self.tk.getTokenType()
-		self.compileLet()
-		pass
+		while self.tk.hasMoreTokens():
+			print(f'current token in compileClass: {self.tk.currentTokenType}')
+			self.compileLet()
 
 	# compiles a static variable or field declaration
 	def compileClassVarDec(self):
@@ -116,7 +115,7 @@ class CompilationEngine:
 		assert self.tk.getTokenType() == TokenType.IDENTIFIER
 
 		# then write <identifier> value </identifier>
-		o.write(f'<identifier> {self.tk.currentIdentifierValue} </identifier>')
+		o.write(f'<identifier> {self.tk.currentIdentifierValue} </identifier>\n')
 
 	# letStatement: 'let' varName ('[' expression ']')? '=' expression ';'
 	def compileLet(self):
@@ -147,12 +146,12 @@ class CompilationEngine:
 		# if it's '=', eat it, compileExpr, eat(';')
 		if self.tk.currentSymbolValue == '=':
 			self.eat('=', advance=False)
-			o.write('<symbol> = </symbol>')
+			o.write('<symbol> = </symbol>\n')
 			# TODO # for expressionLess, use term: id, strC, intC
 			# TODO can also be true, false, null, this ← keywords!
 			self.compileExpression()
 			self.eat(';')
-			o.write('<symbol> ; </symbol>')
+			o.write('<symbol> ; </symbol>\n')
 		o.write('</letStatement>\n')
 
 	# compiles an if statement, possibly with a trailing else clause
@@ -170,17 +169,17 @@ class CompilationEngine:
 
 		# '(' expression ')'
 		self.eat('(')
-		o.write('<symbol> ( </symbol>')
+		o.write('<symbol> ( </symbol>\n')
 		self.compileExpression()
 		self.eat(')')
-		o.write('<symbol> ) </symbol>')
+		o.write('<symbol> ) </symbol>\n')
 
 		# '{' statements '}'
 		self.eat('{')
-		o.write('<symbol> { </symbol>')
+		o.write('<symbol> { </symbol>\n')
 		self.compileStatements()
 		self.eat('}')
-		o.write('<symbol> } </symbol>')
+		o.write('<symbol> } </symbol>\n')
 		o.write('</whileStatement>\n')
 
 	def compileDo(self):
@@ -194,13 +193,58 @@ class CompilationEngine:
 	# single look-ahead token, which may be one of [, (, or ., suffices to
 	# distinguish between the possibilities. any other token is not part of this
 	# term and should not be advanced over.
+	#
+	# the output should be wrapped with <term></term> with the value inside:
+	#   <integerConstant> 1 </integerConstant>
+	#   <identifier> i </identifier>
+	#   <keyword> false </keyword>
+	#   <keyword> null </keyword>
+	#   <keyword> this </keyword>
 	def compileTerm(self):
-
+		o = self.out
 		# TODO varName | constant, but the full grammar rule is:
 		# integerConstant stringConstant keywordConstant varName
 		# varName '[' expression ']' subroutineCall '(' expression ')'
 		# unaryOp term
-		pass
+
+		# TODO 1st pass: term should just be int,str,keyword,identifier with no
+		# TODO varName[expr] or subCall(expr)
+		# TODO but probably unaryOp term is fine. unaryOps are - and ~
+
+		# 🏭 integerConst stringConst keywordConst identifier unaryOp→term
+		# remember that keywordConstants are false, true, null, this
+		self.tk.advance()
+		match self.tk.getTokenType():
+			case TokenType.IDENTIFIER:
+				value = self.tk.currentIdentifierValue
+				o.write(f'<identifier> {value} </identifier>\n')
+			case TokenType.KEYWORD:
+				value = self.tk.currentKeyWordValue
+				assert value in ['true', 'false', 'null', 'this'], value
+				o.write(f'<keyword> {value} </keyword>\n')
+			case TokenType.INT_CONST:
+				value = self.tk.currentIntConstValue
+				o.write(f'<integerConstant> {value} </integerConstant>\n')
+			case TokenType.STRING_CONST:
+				value = self.tk.currentStrConstValue
+				o.write(f'<stringConstant> {value} </stringConstant>\n')
+			case TokenType.SYMBOL:
+				# 🏭 advance one more time to detect '[' for varName[expr]
+				# or '(' for subroutineCall(expr). detect unaryOp term
+				value = self.tk.currentKeyWordValue
+				match value:
+					case '[':
+						print(f'varName[expr] detected! doing nothing')
+					case '(':
+						print(f'subroutineCall(expr) detected! doing nothing')
+					case '-':
+						pass
+					case '~':
+						pass
+					case _:
+						raise ValueError(f'invalid symbol: {value}')
+			case _:
+				raise TypeError(f'invalid TokenType: {self.tk.getTokenType()}')
 
 	# not used in the first pass
 	def compileExpression(self):
@@ -243,7 +287,7 @@ class CompilationEngine:
 
 		# assert expectedToken matches actual token
 
-		print(f'ate ← {value}')
+		print(f'[ate] ← {value}')
 		assert expectedToken == value, f'expected: {expectedToken}, value:{value}'
 
 # every rule has an associated compile method (15 total methods) except 6:
