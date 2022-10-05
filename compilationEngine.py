@@ -69,9 +69,15 @@ class CompilationEngine:
 	def __init__(self, inputJackUri, outputXmlUri):
 		# create a Tokenizer object from the inputURI
 		self.tk = JackTokenizer(inputJackUri)
+
 		# open file for writing with URI=outputXML
 		self.out = open(outputXmlUri, 'w')
 
+		# sometimes compileTerm will need to do an additional advance for LL2.
+		# this flag tells us to skip the next advance() if that's the case.
+		# foo, foo[expr], foo.bar(exprList), bar(exprList)
+		# unsure about difference between Foo.bar(exprList) vs foo.bar(exprList)
+		self.doNotAdvWhileEating = False
 		pass
 
 	# compiles a complete class. called after the constructor
@@ -152,6 +158,7 @@ class CompilationEngine:
 
 			# TODO # for expressionLess, use term: id, strC, intC
 			# TODO can also be true, false, null, this ← keywords!
+			# actually these are both taken care of in compileExpr,Term
 			self.compileExpression()
 			self.eat(';')
 			o.write('<symbol> ; </symbol>\n')
@@ -220,6 +227,31 @@ class CompilationEngine:
 		match self.tk.getTokenType():
 			case TokenType.IDENTIFIER:
 				value = self.tk.identifier()
+
+				# we need to advance one more time to check 4 LL2 cases
+				# we already advanced, so don't advance the next time we need to
+				# self.eat. if this flag is true when eat is called, don't
+				# advance. reset the flag instead.
+				# TODO somewhere else this happens. we can just set the flag
+				self.tk.advance()
+				self.doNotAdvWhileEating = True
+
+				tokenType = self.tk.getTokenType()
+				match tokenType:
+					case TokenType.SYMBOL:
+						advTokenValue = self.tk.symbol()
+						if advTokenValue == '.':
+							# TODO process subroutineCall
+							pass
+						if advTokenValue == '(':
+							# TODO process subroutineCall
+							pass
+						if advTokenValue == '[':
+							# TODO process varName[expression]
+							pass
+					case _:
+						raise TypeError(f'')
+
 				o.write(f'<identifier> {value} </identifier>\n')
 			case TokenType.KEYWORD:
 				value = self.tk.keyWord()
@@ -231,21 +263,6 @@ class CompilationEngine:
 			case TokenType.STRING_CONST:
 				value = self.tk.stringVal()
 				o.write(f'<stringConstant> {value} </stringConstant>\n')
-			case TokenType.SYMBOL:
-				# 🏭 advance one more time to detect '[' for varName[expr]
-				# or '(' for subroutineCall(expr). detect unaryOp term
-				value = self.tk.symbol()
-				match value:
-					case '[':
-						print(f'varName[expr] detected! doing nothing')
-					case '(':
-						print(f'subroutineCall(expr) detected! doing nothing')
-					case '-':
-						pass
-					case '~':
-						pass
-					case _:
-						raise ValueError(f'invalid symbol: {value}')
 			case _:
 				raise TypeError(f'invalid TokenType: {self.tk.getTokenType()}')
 
