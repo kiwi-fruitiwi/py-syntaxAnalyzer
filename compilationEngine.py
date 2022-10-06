@@ -263,6 +263,11 @@ class CompilationEngine:
 			case TokenType.STRING_CONST:
 				value = self.tk.stringVal()
 				o.write(f'<stringConstant> {value} </stringConstant>\n')
+			case TokenType.SYMBOL:
+				value = self.tk.symbol()
+				# this will be unaryOp term: write op, recursively compileTerm
+				# but it can't be another unaryOp term?
+				pass
 			case _:
 				raise TypeError(f'invalid TokenType: {self.tk.getTokenType()}')
 
@@ -273,7 +278,14 @@ class CompilationEngine:
  		self.compileTerm()
 
 	# compiles a (possibly empty) comma-separated list of expressions
+	# (expression (, expression)*)?
 	def compileExpressionList(self):
+		# how do we check if an expression exists?
+		# we could check if the first part is a term...
+
+		# then advance to check for symbol ','
+		# if symbol is ',': compileExpression(), repeat
+
 		pass
 
 	# we must have two versions of eat: one with advance and one without

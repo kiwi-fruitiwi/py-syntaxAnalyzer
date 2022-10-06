@@ -200,7 +200,8 @@ class JackTokenizer:
 
 	# helper function to process string constants
 	def __processStringConstant(self):
-		# given: the current character is a double quote; now we need to find the next double quote. code[i+1:] gives the 'rest' of the code
+		# given: the current character is a double quote; now we need to find
+		# the next double quote. code[i+1:] gives the 'rest' of the code
 		nextDblQuoteIndex = self.code[self.i+1:].index('\"') + self.i
 		self.currentTokenType = TokenType.STRING_CONST
 
