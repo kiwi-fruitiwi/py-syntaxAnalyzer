@@ -55,6 +55,23 @@
 # 	op:				+, -, =, >, <
 #
 
+# 2022.10.07 ⊼² current puzzles
+# 	how to detect if an expression exists for expressionList
+# 		don't we have to advance? set flag to skip next adv I guess
+# 		but then we have to check if the next token is an expression
+# 			seems like a complicated test
+# 	detecting names: class, subRoutine, var
+# 		it's an identifier
+# 			index 0 capital → className
+# 			subroutineName preceded by '.', but now do we detect that?
+# 				set previous token?
+# 	compileIdentifier: why do we have this?
+#
+# every rule has an associated compile method (15 total methods) except 6:
+#   type, className, subRoutineName, variableName, statement, subroutineCall
+#   the logic of these 6 rules is handled by the rules who invoke them
+#   e.g. there is no compileStatement because statement has subtypes, and it's
+#   split into compileIf, compileWhile, etc.
 
 from tokenizer import JackTokenizer, TokenType
 
@@ -320,8 +337,4 @@ class CompilationEngine:
 		# print(f'[eating → {value}]')
 		assert expectedToken == value, f'expected: {expectedToken}, actual:{value}'
 
-# every rule has an associated compile method (15 total methods) except 6:
-# type, className, subRoutineName, variableName, statement, subroutineCall
-# the logic of these 6 rules is handled by the rules who invoke them
-# e.g. there is no compileStatement because statement has subtypes and it's
-# split into compileIf, compileWhile, etc.
+
