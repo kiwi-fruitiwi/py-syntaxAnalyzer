@@ -319,10 +319,11 @@ class CompilationEngine:
 		# calling this has already done so
 
 		# four cases between doNotAdvWhileEating and advance parameters:
-		# if skipNextAdvance is true, advanceFlag is true: skip advance()
-		# if skipNextAdvance is true, advanceFlag is false: skip advance()
-		# if skipNextAdvance is false, advanceFlag is true: advance()
-		# if skipNextAdvance is false, advanceFlag is false: skip advance()
+		# skipNextAdvance advanceFlag action
+		#               T T           → don't advance()
+		#               T F           → don't advance()
+		#               F T           → advance(), reset sna
+		#               F F           → don't advance(), reset sna
 		# ∴ only advance if skipNextAdvance=False, advanceFlag=True
 
 		if not self.skipNextAdvance and advanceFlag:
@@ -330,6 +331,11 @@ class CompilationEngine:
 			# → see term: foo, foo[expr], foo.bar(exprList), bar(exprList)
 			# turn off the "skip next eat()'s advance()" toggle if it's on
 			self.tk.advance()
+
+		# reset the flag now that we've 'consumed' an eat command
+		if self.skipNextAdvance:
+			self.skipNextAdvance = False
+
 		tokenType = self.tk.getTokenType()  # current token
 
 		match tokenType:  # determine value of token
