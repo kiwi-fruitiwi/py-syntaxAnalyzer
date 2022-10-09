@@ -153,7 +153,6 @@ class CompilationEngine:
 		o.write('<letStatement>\n')
 		o.write('<keyword> let </keyword>\n')
 
-		# varName → compile varName?
 		# className, varName, subRName all identifiers ← 'program structure'
 		self.compileIdentifier()
 
@@ -167,20 +166,29 @@ class CompilationEngine:
 		# if next token is '[', eat('['), compileExpr, eat(']')
 		if self.tk.symbol() == '[':
 			self.eat('[', advanceFlag=False)
+			o.write('<symbol> [ </symbol>')
+
 			self.compileExpression()
+
 			self.eat(']')
+			o.write('<symbol> ] </symbol>')
 
-		# if it's '=', eat it, compileExpr, eat(';')
-		if self.tk.symbol() == '=':
-			self.eat('=', advanceFlag=False)
-			o.write('<symbol> = </symbol>\n')
+			self.tk.advance()  # reach the '='
 
-			# TODO # for expressionLess, use term: id, strC, intC
-			# TODO can also be true, false, null, this ← keywords!
-			# actually these are both taken care of in compileExpr,Term
-			self.compileExpression()
-			self.eat(';')
-			o.write('<symbol> ; </symbol>\n')
+		# we are guaranteed the next symbol is '='
+		# eat it, compileExpr, eat(';')
+		assert self.tk.symbol() == '='
+
+		self.eat('=', advanceFlag=False)
+		o.write('<symbol> = </symbol>\n')
+
+		# TODO # for expressionLess, use term: id, strC, intC
+		# TODO can also be true, false, null, this ← keywords!
+		# actually these are both taken care of in compileExpr,Term
+		self.compileExpression()
+		self.eat(';')
+		o.write('<symbol> ; </symbol>\n')
+
 		o.write('</letStatement>\n')
 
 	# compiles an if statement, possibly with a trailing else clause
@@ -209,6 +217,7 @@ class CompilationEngine:
 		self.compileStatements()
 		self.eat('}')
 		o.write('<symbol> } </symbol>\n')
+
 		o.write('</whileStatement>\n')
 
 	def compileDo(self):
