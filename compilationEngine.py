@@ -94,7 +94,9 @@ class CompilationEngine:
 		# this flag tells us to skip the next advance() if that's the case.
 		# foo, foo[expr], foo.bar(exprList), bar(exprList)
 		# unsure about difference between Foo.bar(exprList) vs foo.bar(exprList)
-		self.doNotAdvWhileEating = False
+
+		# if true, the next eat() doesn't advance
+		self.skipNextAdvance = False
 		pass
 
 	# compiles a complete class. called after the constructor
@@ -164,13 +166,13 @@ class CompilationEngine:
 
 		# if next token is '[', eat('['), compileExpr, eat(']')
 		if self.tk.symbol() == '[':
-			self.eat('[', advance=False)
+			self.eat('[', advanceFlag=False)
 			self.compileExpression()
 			self.eat(']')
 
 		# if it's '=', eat it, compileExpr, eat(';')
 		if self.tk.symbol() == '=':
-			self.eat('=', advance=False)
+			self.eat('=', advanceFlag=False)
 			o.write('<symbol> = </symbol>\n')
 
 			# TODO # for expressionLess, use term: id, strC, intC
@@ -251,7 +253,7 @@ class CompilationEngine:
 				# advance. reset the flag instead.
 				# TODO somewhere else this happens. we can just set the flag
 				self.tk.advance()
-				self.doNotAdvWhileEating = True
+				self.skipNextAdvance = True
 
 				tokenType = self.tk.getTokenType()
 				match tokenType:
@@ -310,12 +312,23 @@ class CompilationEngine:
 	# checking the token, e.g.
 	# → varDec: 'var' type varName (',' varName)*';'
 	# → let: 'let' varName ('[' expression ']')? '=' expression ';'
-	def eat(self, expectedToken: str, advance=True):
+	def eat(self, expectedToken: str, advanceFlag=True):
 		# expected token ← what the compile_ method that calls eat expects
 		# actual tokenizer token ← tokenizer.advance
 		# note that sometimes we don't advance because the compile method
 		# calling this has already done so
-		if advance:
+
+		# four cases between doNotAdvWhileEating and advance parameters:
+		# if skipNextAdvance is true, advanceFlag is true: skip advance()
+		# if skipNextAdvance is true, advanceFlag is false: skip advance()
+		# if skipNextAdvance is false, advanceFlag is true: advance()
+		# if skipNextAdvance is false, advanceFlag is false: skip advance()
+		# ∴ only advance if skipNextAdvance=False, advanceFlag=True
+
+		if not self.skipNextAdvance and advanceFlag:
+			# skip advance if flag is on from LL2 read-ahead situation
+			# → see term: foo, foo[expr], foo.bar(exprList), bar(exprList)
+			# turn off the "skip next eat()'s advance()" toggle if it's on
 			self.tk.advance()
 		tokenType = self.tk.getTokenType()  # current token
 
