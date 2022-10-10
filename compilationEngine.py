@@ -228,16 +228,24 @@ class CompilationEngine:
 		o.write('<symbol> ) </symbol>')
 
 		# '{' statements '}'
+		self.__compileStatementsWithinBrackets()
+
+		# (else '{' statements '}')?
+		self.tk.advance()  # check for else token
+		if self.tk.getTokenType() == TokenType.KEYWORD:
+			if self.tk.keyWord() == 'else':
+				self.__compileStatementsWithinBrackets()
+			else:  # we've already advanced once to check the else keyword
+				self.skipNextAdvance = True
+
+		o.write('</ifStatement>\n')
+
+	def __compileStatementsWithinBrackets(self):
 		self.eat('{')
 		o.write('<symbol> { </symbol>')
 		self.compileStatements()
 		self.eat('}')
 		o.write('<symbol> } </symbol>')
-
-		# (else '{' statements '}')?
-
-
-		o.write('</ifStatement>\n')
 
 	# 'while' '(' expression ')' '{' statements '}'
 	def compileWhile(self):
