@@ -192,8 +192,52 @@ class CompilationEngine:
 		o.write('</letStatement>\n')
 
 	# compiles an if statement, possibly with a trailing else clause
+	# if '(' expression ')' '{' statements '}' (else '{' statements '}')?
 	def compileIf(self):
-		pass
+		"""
+		<ifStatement>
+          <keyword> if </keyword>
+          <symbol> ( </symbol>
+          <expression>
+            <term>
+              <identifier> b </identifier>
+            </term>
+          </expression>
+          <symbol> ) </symbol>
+          <symbol> { </symbol>
+          <statements>
+          </statements>
+          <symbol> } </symbol>
+          <keyword> else </keyword>
+          <symbol> { </symbol>
+          <statements>
+          </statements>
+          <symbol> } </symbol>
+        </ifStatement>
+		:return:
+		"""
+		o = self.out
+		# if '(' expression ')'
+		self.eat('if')
+		o.write('<ifStatement>')
+
+		self.eat('(')
+		o.write('<symbol> ( </symbol>')
+		self.compileExpression()
+		self.eat(')')
+		o.write('<symbol> ) </symbol>')
+
+		# '{' statements '}'
+		self.eat('{')
+		o.write('<symbol> { </symbol>')
+		self.compileStatements()
+		self.eat('}')
+		o.write('<symbol> } </symbol>')
+
+		# (else '{' statements '}')?
+
+
+		o.write('</ifStatement>\n')
 
 	# 'while' '(' expression ')' '{' statements '}'
 	def compileWhile(self):
