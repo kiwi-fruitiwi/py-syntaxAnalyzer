@@ -424,15 +424,57 @@ class CompilationEngine:
  		self.compileTerm()
 
 	# compiles a (possibly empty) comma-separated list of expressions
-	# (expression (, expression)*)?
+	# (expression (',' expression)*)?
 	def compileExpressionList(self):
-		# how do we check if an expression exists?
-		# we could check if the first part is a term...
+		"""
+		empty expressionList tags are a possibility
+			<expressionList>
+			</expressionList>
 
-		# then advance to check for symbol ','
-		# if symbol is ',': compileExpression(), repeat
+		otherwise, expressions separated by ',' symbols: x, y, z
+			<expressionList>
+			<expression>
+			  <term>
+				<identifier> x </identifier>
+			  </term>
+			</expression>
+			<symbol> , </symbol>
+			<expression>
+			  <term>
+				<identifier> y </identifier>
+			  </term>
+			</expression>
+			</expressionList>
+		:return:
+		"""
+		# (expression (',' expression)*)?
 
-		pass
+		o = self.out
+		o.write('<expressionList>')
+		# how do we check if an expression exists? if it's ')', exprList empty
+		# e.g. out.write('compiler') vs out.write()
+		# hitting the last ')' ensures the expressionList is done
+		self.tk.advance()
+		self.skipNextAdvance = True
+
+		if self.tk.symbol() == ')':
+			self.eat(')')
+			o.write('</expressionList>')
+		else:
+			self.compileExpression()
+
+		# after compileExpression, next token has only two options:  ')' vs ','
+		# ',' corresponds to (',' expression)*. eat(',') → compileExpression
+		while self.tk.symbol() == ',':
+			self.eat(',')
+			self.compileExpression()
+			self.tk.advance()
+			self.skipNextAdvance = True
+
+		# ending case: ')' means we're done
+		if self.tk.symbol() == ')':
+			self.eat(')')
+			o.write('</expressionList>')
 
 	# we must have two versions of eat: one with advance and one without
 	# this is for cases with ()? or ()* and we must advance first before
