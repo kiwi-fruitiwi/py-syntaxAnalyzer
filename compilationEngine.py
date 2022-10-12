@@ -266,8 +266,38 @@ class CompilationEngine:
 
 		o.write('</whileStatement>\n')
 
+	# 'do' subroutineCall ';'
 	def compileDo(self):
-		pass
+		"""
+		<doStatement>
+          <keyword> do </keyword>
+          <identifier> Memory </identifier>
+          <symbol> . </symbol>
+          <identifier> deAlloc </identifier>
+          <symbol> ( </symbol>
+          <expressionList>
+            <expression>
+              <term>
+                <keyword> this </keyword>
+              </term>
+            </expression>
+          </expressionList>
+          <symbol> ) </symbol>
+          <symbol> ; </symbol>
+        </doStatement>
+		:return:
+		"""
+		o = self.out
+
+		self.eat('do')
+		o.write('<doStatement>\n')
+		o.write('<keyword> do </keyword>\n')
+
+		# subroutineName '(' expressionList ')' |
+		# (className | varName) '.' subroutineName '(' expressionList ')'
+		# TODO: do expressionList first
+
+		o.write('</doStatement>\n')
 
 	# 'return' expression? ';'
 	def compileReturn(self):
