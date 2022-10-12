@@ -237,17 +237,17 @@ class CompilationEngine:
 
 	def __compileExprWithinParens(self):
 		self.eat('(')
-		o.write('<symbol> ( </symbol>\n')
+		self.out.write('<symbol> ( </symbol>\n')
 		self.compileExpression()
 		self.eat(')')
-		o.write('<symbol> ) </symbol>\n')
+		self.out.write('<symbol> ) </symbol>\n')
 
 	def __compileStatementsWithinBrackets(self):
 		self.eat('{')
-		o.write('<symbol> { </symbol>\n')
+		self.out.write('<symbol> { </symbol>\n')
 		self.compileStatements()
 		self.eat('}')
-		o.write('<symbol> } </symbol>\n')
+		self.out.write('<symbol> } </symbol>\n')
 
 	# 'while' '(' expression ')' '{' statements '}'
 	def compileWhile(self):
@@ -269,8 +269,50 @@ class CompilationEngine:
 	def compileDo(self):
 		pass
 
+	# 'return' expression? ';'
 	def compileReturn(self):
-		pass
+		"""
+		<returnStatement>
+          <keyword> return </keyword>
+          <expression>
+            <term>
+              <identifier> x </identifier>
+            </term>
+          </expression>
+          <symbol> ; </symbol>
+        </returnStatement>
+
+		:return:
+		"""
+		o = self.out
+
+		# 'return'
+		self.eat('return')
+		o.write('<returnStatement>\n')
+		o.write('<keyword> return </keyword>\n')
+
+		# expression? ';'
+		# the next token is either a ';' or an expression
+		# expressions are more difficult to check for so, check for symbol ';'
+		# if it's a ';' we're done! although unary ops can start terms
+		self.tk.advance()
+		self.skipNextAdvance = True
+
+		if self.tk.getTokenType() == TokenType.SYMBOL:
+			currentSymbol = self.tk.symbol()
+			if currentSymbol == ';':
+				# we already advanced! set advanceFlag anyway. redundant with
+				# self.skipNextAdvance being True though.
+				self.eat(';', advanceFlag=False)
+				o.write('<symbol> ; </symbol>')
+			else:
+				# unaryOp is part of the definition of a term
+				if currentSymbol == '-' or currentSymbol == '~':
+					self.compileExpression()
+		else:
+			self.compileExpression()
+
+		o.write('</returnStatement>\n')
 
 	# compiles a term. if the current token is an identifier, the routine must
 	# distinguish between a variable, an array entry, or a subroutine call. a
