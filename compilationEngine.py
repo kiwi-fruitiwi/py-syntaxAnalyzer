@@ -149,9 +149,8 @@ class CompilationEngine:
 		o = self.out
 
 		# 'let'
-		self.eat('let')
 		o.write('<letStatement>\n')
-		o.write('<keyword> let </keyword>\n')
+		self.eat('let')
 
 		# className, varName, subRName all identifiers ← 'program structure'
 		self.compileIdentifier()
@@ -166,13 +165,8 @@ class CompilationEngine:
 		# if next token is '[', eat('['), compileExpr, eat(']')
 		if self.tk.symbol() == '[':
 			self.eat('[', advanceFlag=False)
-			o.write('<symbol> [ </symbol>')
-
 			self.compileExpression()
-
 			self.eat(']')
-			o.write('<symbol> ] </symbol>')
-
 			self.tk.advance()  # reach the '='
 
 		# we are guaranteed the next symbol is '='
@@ -180,14 +174,12 @@ class CompilationEngine:
 		assert self.tk.symbol() == '='
 
 		self.eat('=', advanceFlag=False)
-		o.write('<symbol> = </symbol>\n')
 
 		# TODO # for expressionLess, use term: id, strC, intC
 		# TODO can also be true, false, null, this ← keywords!
 		# actually these are both taken care of in compileExpr,Term
 		self.compileExpression()
 		self.eat(';')
-		o.write('<symbol> ; </symbol>\n')
 
 		o.write('</letStatement>\n')
 
@@ -217,9 +209,10 @@ class CompilationEngine:
 		:return:
 		"""
 		o = self.out
+
 		# if '(' expression ')'
-		self.eat('if')
 		o.write('<ifStatement>')
+		self.eat('if')
 		self.__compileExprWithinParens()
 
 		# '{' statements '}'
@@ -237,26 +230,21 @@ class CompilationEngine:
 
 	def __compileExprWithinParens(self):
 		self.eat('(')
-		self.out.write('<symbol> ( </symbol>\n')
 		self.compileExpression()
 		self.eat(')')
-		self.out.write('<symbol> ) </symbol>\n')
 
 	def __compileStatementsWithinBrackets(self):
 		self.eat('{')
-		self.out.write('<symbol> { </symbol>\n')
 		self.compileStatements()
 		self.eat('}')
-		self.out.write('<symbol> } </symbol>\n')
 
 	# 'while' '(' expression ')' '{' statements '}'
 	def compileWhile(self):
 		o = self.out
 
 		# 'while'
-		self.eat('while')
 		o.write('<whileStatement>\n')
-		o.write('<keyword> while </keyword>\n')
+		self.eat('while')
 
 		# '(' expression ')'
 		self.__compileExprWithinParens()
@@ -289,14 +277,34 @@ class CompilationEngine:
 		"""
 		o = self.out
 
-		self.eat('do')
 		o.write('<doStatement>\n')
-		o.write('<keyword> do </keyword>\n')
+		self.eat('do')
 
 		# subroutineName '(' expressionList ')' |
 		# (className | varName) '.' subroutineName '(' expressionList ')'
-		# TODO: do expressionList first
+		#
+		# two possibilities:
+		# 	identifier (className | varName) → '.' e.g. obj.render(x, y)
+		# 	identifier (subroutineName) → '(' e.g. render(x, y)
+		self.tk.advance()
+		o.write(f'<identifier> {self.tk.identifier()} </identifier')
 
+		self.tk.advance()
+		self.skipNextAdvance = True
+
+		# handling the ',render' subroutineName after '.'
+		if self.tk.symbol() == '.':
+			self.eat('.')
+			# advance and grab the subroutineName
+			self.advance()
+			o.write(f'<identifier> {self.tk.identifier()} </identifier')
+
+		# then eat('(') → compileExpressionList
+		self.eat('(')
+		self.compileExpressionList()
+
+		# ';'
+		self.eat(';')
 		o.write('</doStatement>\n')
 
 	# 'return' expression? ';'
@@ -317,9 +325,8 @@ class CompilationEngine:
 		o = self.out
 
 		# 'return'
-		self.eat('return')
 		o.write('<returnStatement>\n')
-		o.write('<keyword> return </keyword>\n')
+		self.eat('return')
 
 		# expression? ';'
 		# the next token is either a ';' or an expression
@@ -334,7 +341,6 @@ class CompilationEngine:
 				# we already advanced! set advanceFlag anyway. redundant with
 				# self.skipNextAdvance being True though.
 				self.eat(';', advanceFlag=False)
-				o.write('<symbol> ; </symbol>')
 			else:
 				# unaryOp is part of the definition of a term
 				if currentSymbol == '-' or currentSymbol == '~':
@@ -463,6 +469,9 @@ class CompilationEngine:
 		else:
 			self.compileExpression()
 
+		self.tk.advance()
+		self.skipNextAdvance = True
+
 		# after compileExpression, next token has only two options:  ')' vs ','
 		# ',' corresponds to (',' expression)*. eat(',') → compileExpression
 		while self.tk.symbol() == ',':
@@ -482,6 +491,7 @@ class CompilationEngine:
 	# → varDec: 'var' type varName (',' varName)*';'
 	# → let: 'let' varName ('[' expression ']')? '=' expression ';'
 	def eat(self, expectedToken: str, advanceFlag=True):
+		o = self.out
 		# expected token ← what the compile_ method that calls eat expects
 		# actual tokenizer token ← tokenizer.advance
 		# note that sometimes we don't advance because the compile method
@@ -510,15 +520,20 @@ class CompilationEngine:
 		match tokenType:  # determine value of token
 			case TokenType.KEYWORD:
 				value = self.tk.keyWord()
+				o.write(f'<keyword> {value} </keyword>\n')
 			case TokenType.SYMBOL:
 				value = self.tk.symbol()
+				o.write(f'<symbol> {value} </symbol>\n')
 			case TokenType.IDENTIFIER:
 				value = self.tk.identifier()
+				o.write(f'<identifier> {value} </identifier>\n')
 			case TokenType.INT_CONST:
 				value = self.tk.intVal()
+				o.write(f'<integerConstant> {value} </integerConstant>\n')
 			case TokenType.STRING_CONST:
 				value = self.tk.stringVal()
-			case _:
+				o.write(f'<stringConstant> {value} </stringConstant>\n')
+			case _:  # impossible
 				raise TypeError(f'token type invalid: not keyword, symbol, '
 								  f'identifier, int constant, or string constant: {tokenType}')
 		# assert expectedToken matches actual token
