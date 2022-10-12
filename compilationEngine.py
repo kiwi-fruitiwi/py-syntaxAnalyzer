@@ -220,12 +220,7 @@ class CompilationEngine:
 		# if '(' expression ')'
 		self.eat('if')
 		o.write('<ifStatement>')
-
-		self.eat('(')
-		o.write('<symbol> ( </symbol>')
-		self.compileExpression()
-		self.eat(')')
-		o.write('<symbol> ) </symbol>')
+		self.__compileExprWithinParens()
 
 		# '{' statements '}'
 		self.__compileStatementsWithinBrackets()
@@ -240,12 +235,19 @@ class CompilationEngine:
 
 		o.write('</ifStatement>\n')
 
+	def __compileExprWithinParens(self):
+		self.eat('(')
+		o.write('<symbol> ( </symbol>\n')
+		self.compileExpression()
+		self.eat(')')
+		o.write('<symbol> ) </symbol>\n')
+
 	def __compileStatementsWithinBrackets(self):
 		self.eat('{')
-		o.write('<symbol> { </symbol>')
+		o.write('<symbol> { </symbol>\n')
 		self.compileStatements()
 		self.eat('}')
-		o.write('<symbol> } </symbol>')
+		o.write('<symbol> } </symbol>\n')
 
 	# 'while' '(' expression ')' '{' statements '}'
 	def compileWhile(self):
@@ -257,18 +259,10 @@ class CompilationEngine:
 		o.write('<keyword> while </keyword>\n')
 
 		# '(' expression ')'
-		self.eat('(')
-		o.write('<symbol> ( </symbol>\n')
-		self.compileExpression()
-		self.eat(')')
-		o.write('<symbol> ) </symbol>\n')
+		self.__compileExprWithinParens()
 
 		# '{' statements '}'
-		self.eat('{')
-		o.write('<symbol> { </symbol>\n')
-		self.compileStatements()
-		self.eat('}')
-		o.write('<symbol> } </symbol>\n')
+		self.__compileStatementsWithinBrackets()
 
 		o.write('</whileStatement>\n')
 
