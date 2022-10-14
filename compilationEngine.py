@@ -128,7 +128,88 @@ class CompilationEngine:
 		pass
 
 	# compiles a sequence of statements. does not handle enclosing '{}'
+	# a statement is one of 5 options: let, if, while, do, return
+	# statements is statement*, meaning it can be nothing
 	def compileStatements(self):
+		"""
+		<statements>
+            <letStatement>
+              <keyword> let </keyword>
+              <identifier> a </identifier>
+              <symbol> [ </symbol>
+              <expression>
+                <term>
+                  <identifier> i </identifier>
+                </term>
+              </expression>
+              <symbol> ] </symbol>
+              <symbol> = </symbol>
+              <expression>
+                <term>
+                  <identifier> Keyboard </identifier>
+                  <symbol> . </symbol>
+                  <identifier> readInt </identifier>
+                  <symbol> ( </symbol>
+                  <expressionList>
+                    <expression>
+                      <term>
+                        <stringConstant> ENTER THE NEXT NUMBER:  </stringConstant>
+                      </term>
+                    </expression>
+                  </expressionList>
+                  <symbol> ) </symbol>
+                </term>
+              </expression>
+              <symbol> ; </symbol>
+            </letStatement>
+            <letStatement>
+              <keyword> let </keyword>
+              <identifier> i </identifier>
+              <symbol> = </symbol>
+              <expression>
+                <term>
+                  <identifier> i </identifier>
+                </term>
+                <symbol> + </symbol>
+                <term>
+                  <integerConstant> 1 </integerConstant>
+                </term>
+              </expression>
+              <symbol> ; </symbol>
+            </letStatement>
+          </statements>
+		:return:
+
+		statements is found in if, while, and subroutineBody
+			if (expression) {statements} else {statements}
+			while (expression) {statements}
+			{varDec* statements}
+
+		note that statements always ends in '}'!
+		"""
+		o = self.out
+		o.write('<statements>\n')
+		# TODO how do we determine when statements ends? when next token isn't
+		# TODO one of the 5: let if while do return
+		# pseudocode →
+		#   advance()
+		#
+		#   assert current token is keyword: let if while do return
+		#	match currentToken
+		#		call appropriate compileStatement
+		#   advance() ← if next token is keyword, repeat
+		#	else next token is }. end
+		#
+		# pseudocode revised:
+		#   advance()
+		#	while currentToken isn't }:
+		#		match currentToken
+		#		call appropriate compile helper methods
+		#		advance() + skip next
+		#
+		# what about a while true loop that breaks on '}'?
+
+		o.write('</statements>\n')
 		pass
 
 	# eats token = identifier, checks type
