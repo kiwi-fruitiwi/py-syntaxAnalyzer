@@ -189,28 +189,12 @@ class CompilationEngine:
 		"""
 		o = self.out
 		o.write('<statements>\n')
-		# TODO how do we determine when statements ends? when next token isn't
-		# TODO one of the 5: let if while do return
-		# pseudocode →
-		#   advance()
-		#
-		#   assert current token is keyword: let if while do return
-		#	match currentToken
-		#		call appropriate compileStatement
-		#   advance() ← if next token is keyword, repeat
-		#	else next token is }. end
-		#
-		# pseudocode revised:
-		#   advance()
-		#	while currentToken isn't }:
-		#		match currentToken
-		#		call appropriate compile helper methods
-		#		advance() + skip next
-		#
-		# what about a while true loop that breaks on '}'?
 
-		# empty because we want to stop when it returns false
+		# we want to try to compile {let, if, while, do, return} statements
+		# until we run out of those keywords
+		# ✒note! currently statements always ends with }
 		while self.__compileStatement():
+			# empty because we want to stop when it returns false
 			continue
 
 		o.write('</statements>\n')
