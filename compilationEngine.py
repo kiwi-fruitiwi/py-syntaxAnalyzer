@@ -209,8 +209,41 @@ class CompilationEngine:
 		#
 		# what about a while true loop that breaks on '}'?
 
+		# empty because we want to stop when it returns false
+		while self.__compileStatement():
+			continue
+
 		o.write('</statements>\n')
-		pass
+
+	# helper method for compileStatements, returning false if
+	# {let if while do return} are not found
+	def __compileStatement(self):
+		self.tk.advance()
+		self.skipNextAdvance = True
+
+		# if compileStatement is being called, tokenType must be one of
+		# {let, if, while, do, return}
+		if self.tk.getTokenType() != TokenType.KEYWORD:
+			return False
+		else:
+			match self.tk.keyWord():
+				case 'let':
+					self.compileLet()
+					return True
+				case 'if':
+					self.compileIf()
+					return True
+				case 'while':
+					self.compileWhile()
+					return True
+				case 'do':
+					self.compileDo()
+					return True
+				case 'return':
+					self.compileReturn()
+					return True
+				case _:
+					raise ValueError(f'did not find let, if, while, do, or return → {self.tk.keyWord()}')
 
 	# eats token = identifier, checks type
 	def compileIdentifier(self):
