@@ -101,14 +101,60 @@ class CompilationEngine:
 
 	# compiles a complete class. called after the constructor
 	def compileClass(self):
+		"""
+		expected output example:
+			<class>
+			  <keyword> class </keyword>
+			  <identifier> Main </identifier>
+			  <symbol> { </symbol>
+			  <subroutineDec>
+				<keyword> function </keyword>
+				<keyword> void </keyword>
+				<identifier> main </identifier>
+				<symbol> ( </symbol>
+				<parameterList>
+				</parameterList>
+				<symbol> ) </symbol>
+				<subroutineBody>
+				...
+
+		follows pattern: class className '{' classVarDec* subroutineDec* '}'
+		"""
 		o = self.out
 		o.write('<class>\n')
-		while self.tk.hasMoreTokens():
-			self.compileLet()
+		self.eat('class')  # this will output <keyword> class </keyword>
+
+		# className is an identifier
+		self.compileIdentifier()
+		self.eat('{')
+
+		while self.compileClassVarDec():
+			continue  # probably unnecessary continue; empty body
+
+		while self.compileSubroutineDec():
+			continue
+
 		o.write('</class>\n')
 
 	# compiles a static variable or field declaration
 	def compileClassVarDec(self):
+		"""
+		used by compileClass, following this pattern:
+		(static | field) type varName (, varName)* ';'
+		type → int | char | boolean | className
+
+		:return: true if one was found, false if not
+		"""
+
+		self.tk.advance()
+		self.skipNextAdvance
+		assert self.tk.getTokenType() == TokenType.KEYWORD
+
+		if self.tk.getTokenType() != TokenType.KEYWORD:
+			return False
+		else:
+			pass
+
 		pass
 
 	# compiles a complete method, function, or constructor
@@ -195,13 +241,17 @@ class CompilationEngine:
 		# ✒note! currently statements always ends with }
 		while self.__compileStatement():
 			# empty because we want to stop when it returns false
-			continue
+			continue  # probably not necessary
 
 		o.write('</statements>\n')
 
 	# helper method for compileStatements, returning false if
 	# {let if while do return} are not found
 	def __compileStatement(self):
+		"""
+
+		:return: true if a statement was found, false if not
+		"""
 		self.tk.advance()
 		self.skipNextAdvance = True
 
@@ -588,7 +638,7 @@ class CompilationEngine:
 	# checking the token, e.g.
 	# → varDec: 'var' type varName (',' varName)*';'
 	# → let: 'let' varName ('[' expression ']')? '=' expression ';'
-	def eat(self, expectedToken: str, advanceFlag=True):
+	def eat(self, expectedTokenValue: str, advanceFlag=True):
 		o = self.out
 		# expected token ← what the compile_ method that calls eat expects
 		# actual tokenizer token ← tokenizer.advance
@@ -636,6 +686,6 @@ class CompilationEngine:
 								  f'identifier, int constant, or string constant: {tokenType}')
 		# assert expectedToken matches actual token
 		# print(f'[eating → {value}]')
-		assert expectedToken == value, f'expected: {expectedToken}, actual:{value}'
+		assert expectedTokenValue == value, f'expected: {expectedTokenValue}, actual:{value}'
 
 
