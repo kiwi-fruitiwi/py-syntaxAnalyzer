@@ -96,7 +96,7 @@ class CompilationEngine:
 		# unsure about difference between Foo.bar(exprList) vs foo.bar(exprList)
 
 		# if true, the next eat() doesn't advance
-		self.skipNextAdvance = False
+		self.skipNextAdvanceOnEat = False
 		pass
 
 	# compiles a complete class. called after the constructor
@@ -146,8 +146,8 @@ class CompilationEngine:
 		:return: true if one was found, false if not
 		"""
 
-		self.tk.advance()
-		self.skipNextAdvance
+		self.advance()
+		self.skipNextAdvanceOnEat
 		assert self.tk.getTokenType() == TokenType.KEYWORD
 
 		if self.tk.getTokenType() != TokenType.KEYWORD:
@@ -252,8 +252,8 @@ class CompilationEngine:
 
 		:return: true if a statement was found, false if not
 		"""
-		self.tk.advance()
-		self.skipNextAdvance = True
+		self.advance()
+		self.skipNextAdvanceOnEat = True
 
 		# if compileStatement is being called, tokenType must be one of
 		# {let, if, while, do, return}
@@ -285,15 +285,18 @@ class CompilationEngine:
 
 		# we actually don't eat because we're not sure what identifier it is
 		# instead, we advance and assert tokenType
-		self.tk.advance()
+		self.advance()
 		# print(f'{self.tk.getTokenType()}')
 		assert self.tk.getTokenType() == TokenType.IDENTIFIER
 
 		# then write <identifier> value </identifier>
 		o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
 
-	# letStatement: 'let' varName ('[' expression ']')? '=' expression ';'
 	def compileLet(self):
+		"""
+		letStatement: 'let' varName ('[' expression ']')? '=' expression ';'
+		:return:
+		"""
 		o = self.out
 
 		# 'let'
@@ -304,7 +307,7 @@ class CompilationEngine:
 		self.compileIdentifier()
 
 		# check next token for two options: '[' or '='
-		self.tk.advance()
+		self.advance(skipNextAdvOnEat=True)
 
 		# assert it's a symbol
 		assert self.tk.getTokenType() == TokenType.SYMBOL
@@ -312,16 +315,16 @@ class CompilationEngine:
 
 		# if next token is '[', eat('['), compileExpr, eat(']')
 		if self.tk.symbol() == '[':
-			self.eat('[', advanceFlag=False)
+			self.eat('[')
 			self.compileExpression()
 			self.eat(']')
-			self.tk.advance()  # reach the '='
+			self.advance()  # reach the '='
 
 		# we are guaranteed the next symbol is '='
 		# eat it, compileExpr, eat(';')
 		assert self.tk.symbol() == '='
 
-		self.eat('=', advanceFlag=False)
+		self.eat('=')
 
 		# TODO # for expressionLess, use term: id, strC, intC
 		# TODO can also be true, false, null, this ← keywords!
@@ -367,12 +370,12 @@ class CompilationEngine:
 		self.__compileStatementsWithinBrackets()
 
 		# (else '{' statements '}')?
-		self.tk.advance()  # check for else token
+		self.advance()  # check for else token
 		if self.tk.getTokenType() == TokenType.KEYWORD:
 			if self.tk.keyWord() == 'else':
 				self.__compileStatementsWithinBrackets()
 			else:  # we've already advanced once to check the else keyword
-				self.skipNextAdvance = True
+				self.skipNextAdvanceOnEat = True
 
 		o.write('</ifStatement>\n')
 
@@ -434,11 +437,10 @@ class CompilationEngine:
 		# two possibilities:
 		# 	identifier (className | varName) → '.' e.g. obj.render(x, y)
 		# 	identifier (subroutineName) → '(' e.g. render(x, y)
-		self.tk.advance()
+		self.advance()
 		o.write(f'<identifier> {self.tk.identifier()} </identifier')
 
-		self.tk.advance()
-		self.skipNextAdvance = True
+		self.advance(skipNextAdvOnEat=True)
 
 		# handling the ',render' subroutineName after '.'
 		if self.tk.symbol() == '.':
@@ -480,15 +482,14 @@ class CompilationEngine:
 		# the next token is either a ';' or an expression
 		# expressions are more difficult to check for so, check for symbol ';'
 		# if it's a ';' we're done! although unary ops can start terms
-		self.tk.advance()
-		self.skipNextAdvance = True
+		self.advance(skipNextAdvOnEat=True)
 
 		if self.tk.getTokenType() == TokenType.SYMBOL:
 			currentSymbol = self.tk.symbol()
 			if currentSymbol == ';':
 				# we already advanced! set advanceFlag anyway. redundant with
 				# self.skipNextAdvance being True though.
-				self.eat(';', advanceFlag=False)
+				self.eat(';')
 			else:
 				# unaryOp is part of the definition of a term
 				if currentSymbol == '-' or currentSymbol == '~':
@@ -523,7 +524,7 @@ class CompilationEngine:
 
 		# 🏭 integerConst stringConst keywordConst identifier unaryOp→term
 		# remember that keywordConstants are false, true, null, this
-		self.tk.advance()
+		self.advance()
 		match self.tk.getTokenType():
 			case TokenType.IDENTIFIER:
 				value = self.tk.identifier()
@@ -533,8 +534,7 @@ class CompilationEngine:
 				# self.eat. if this flag is true when eat is called, don't
 				# advance. reset the flag instead.
 				# TODO somewhere else this happens. we can just set the flag
-				self.tk.advance()
-				self.skipNextAdvance = True
+				self.advance(skipNextAdvFlag=True)
 
 				tokenType = self.tk.getTokenType()
 				match tokenType:
@@ -608,8 +608,7 @@ class CompilationEngine:
 		# how do we check if an expression exists? if it's ')', exprList empty
 		# e.g. out.write('compiler') vs out.write()
 		# hitting the last ')' ensures the expressionList is done
-		self.tk.advance()
-		self.skipNextAdvance = True
+		self.advance(skipNextAdvOnEat=True)
 
 		if self.tk.symbol() == ')':
 			self.eat(')')
@@ -617,16 +616,14 @@ class CompilationEngine:
 		else:
 			self.compileExpression()
 
-		self.tk.advance()
-		self.skipNextAdvance = True
+		self.advance(skipNextAdvOnEat=True)
 
 		# after compileExpression, next token has only two options:  ')' vs ','
 		# ',' corresponds to (',' expression)*. eat(',') → compileExpression
 		while self.tk.symbol() == ',':
 			self.eat(',')
 			self.compileExpression()
-			self.tk.advance()
-			self.skipNextAdvance = True
+			self.advance(skipNextAdvOnEat=True)
 
 		# ending case: ')' means we're done
 		if self.tk.symbol() == ')':
@@ -638,7 +635,7 @@ class CompilationEngine:
 	# checking the token, e.g.
 	# → varDec: 'var' type varName (',' varName)*';'
 	# → let: 'let' varName ('[' expression ']')? '=' expression ';'
-	def eat(self, expectedTokenValue: str, advanceFlag=True):
+	def eat(self, expectedTokenValue: str):
 		o = self.out
 		# expected token ← what the compile_ method that calls eat expects
 		# actual tokenizer token ← tokenizer.advance
@@ -653,15 +650,16 @@ class CompilationEngine:
 		#               F F           → don't advance(), reset sna
 		# ∴ only advance if skipNextAdvance=False, advanceFlag=True
 
-		if not self.skipNextAdvance and advanceFlag:
+		# if not self.skipNextAdvanceOnEat and advanceFlag:
+		if not self.skipNextAdvanceOnEat:
 			# skip advance if flag is on from LL2 read-ahead situation
 			# → see term: foo, foo[expr], foo.bar(exprList), bar(exprList)
 			# turn off the "skip next eat()'s advance()" toggle if it's on
-			self.tk.advance()
+			self.advance()
 
 		# reset the flag now that we've 'consumed' an eat command
-		if self.skipNextAdvance:
-			self.skipNextAdvance = False
+		if self.skipNextAdvanceOnEat:
+			self.skipNextAdvanceOnEat = False
 
 		tokenType = self.tk.getTokenType()  # current token
 
@@ -688,4 +686,7 @@ class CompilationEngine:
 		# print(f'[eating → {value}]')
 		assert expectedTokenValue == value, f'expected: {expectedTokenValue}, actual:{value}'
 
-
+	# wrapper for self.tk.advance. sets skipNextAdvance flag for us
+	def advance(self, skipNextAdvOnEat=False):
+		self.tk.advance()
+		self.skipNextAdvanceOnEat = skipNextAdvOnEat
