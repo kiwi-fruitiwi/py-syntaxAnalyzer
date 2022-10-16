@@ -139,23 +139,34 @@ class CompilationEngine:
 	# compiles a static variable or field declaration
 	def compileClassVarDec(self):
 		"""
+		<classVarDec>
+		  <keyword> field </keyword>
+		  <keyword> int </keyword>
+		  <identifier> size </identifier>
+		  <symbol> ; </symbol>
+		</classVarDec>
+
 		used by compileClass, following this pattern:
 		(static | field) type varName (, varName)* ';'
 		type → int | char | boolean | className
 
 		:return: true if one was found, false if not
 		"""
+		o = self.out
+		o.write('<classVarDec>')
 
-		self.advance()
-		self.skipNextAdvanceOnEat
+		self.advance(skipNextAdvOnEat=True)
+
+		# static or field?
 		assert self.tk.getTokenType() == TokenType.KEYWORD
 
-		if self.tk.getTokenType() != TokenType.KEYWORD:
-			return False
-		else:
-			pass
+		# type → advance, if TokenType is keyword: int char or boolean?
 
-		pass
+		# varName
+
+		# (',' varName)*
+
+		o.write('</classVarDec>')
 
 	# compiles a complete method, function, or constructor
 	def compileSubroutineDec(self):
