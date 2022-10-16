@@ -462,7 +462,7 @@ class CompilationEngine:
 
 		# then eat('(') → compileExpressionList
 		self.eat('(')
-		self.compileExpressionList()
+		self.compileExpressionList()  # TODO currently takes care of ending ')'
 
 		# ';'
 		self.eat(';')
@@ -637,9 +637,11 @@ class CompilationEngine:
 			self.advance(skipNextAdvOnEat=True)
 
 		# ending case: ')' means we're done
+		# TODO potential bug double evaluating ')' in subroutineName(exprList)
+		# TODO maybe move this code to compileDo
 		if self.tk.symbol() == ')':
-			self.eat(')')
 			o.write('</expressionList>')
+			self.eat(')')
 
 	# we must have two versions of eat: one with advance and one without
 	# this is for cases with ()? or ()* and we must advance first before
