@@ -1,4 +1,4 @@
-let y = 0;
+// let y = 0;
 let str = "string constant test";
 let number_1 = 2751;
 let expr = scaleFactor;

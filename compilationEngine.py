@@ -99,6 +99,11 @@ class CompilationEngine:
 		self.skipNextAdvanceOnEat = False
 		pass
 
+	# calls compile on whatever needs testing at the moment
+	def testCompile(self):
+		self.compileLet()
+		pass
+
 	# compiles a complete class. called after the constructor
 	def compileClass(self):
 		"""
@@ -523,6 +528,14 @@ class CompilationEngine:
 			case TokenType.KEYWORD:
 				assert self.tk.keyWord() == 'this'
 				o.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
+
+			# adding extra cases: integer and string constant
+			case TokenType.INT_CONST:
+				value = self.tk.intVal()
+				o.write(f'<integerConstant> {value} </integerConstant>\n')
+			case TokenType.STRING_CONST:
+				value = self.tk.stringVal()
+				o.write(f'<stringConstant> {value} </stringConstant>\n')
 			case _:
 				raise ValueError(f'simple term was not an identifier or "this"')
 

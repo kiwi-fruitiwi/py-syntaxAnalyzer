@@ -125,8 +125,8 @@ def generateTokensFromJack():
 
     output.write(f'</tokens>\n')
 
-
 # generateTokensFromJack()
+
 
 def generateCompilationEngineOutput():
     root: str = 'C:/Dropbox/code/nand2tetris/kiwi/nand2tetris/projects/'
@@ -135,7 +135,7 @@ def generateCompilationEngineOutput():
     outputUri = 'output.xml'  # compilation engine output
 
     ce = CompilationEngine(filename, outputUri)
-    ce.compileClass()
+    ce.testCompile()
 
 
 generateCompilationEngineOutput()
