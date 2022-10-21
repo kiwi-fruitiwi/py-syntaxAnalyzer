@@ -510,6 +510,22 @@ class CompilationEngine:
 
 		o.write('</returnStatement>\n')
 
+	# the expressionless tests for project 10 use simplified 'term' tokens
+	# that can only be single identifiers or the keyword 'this'.
+	def compileSimpleTerm(self):
+		o = self.out
+		# the simple version of this rule is identifier | 'this' ←🦔
+		self.advance()
+
+		match self.tk.getTokenType():
+			case TokenType.IDENTIFIER:
+				o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
+			case TokenType.KEYWORD:
+				assert self.tk.keyWord() == 'this'
+				o.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
+			case _:
+				raise ValueError(f'simple term was not an identifier or "this"')
+
 	# compiles a term. if the current token is an identifier, the routine must
 	# distinguish between a variable, an array entry, or a subroutine call. a
 	# single look-ahead token, which may be one of [, (, or ., suffices to
@@ -586,7 +602,7 @@ class CompilationEngine:
 	def compileExpression(self):
 		# temporarily call compileTerm for expressionLessSquare testing
 		# when we're ready to test expressions, then we can test Square
- 		self.compileTerm()
+ 		self.compileSimpleTerm()
 
 	# compiles a (possibly empty) comma-separated list of expressions
 	# (expression (',' expression)*)?
