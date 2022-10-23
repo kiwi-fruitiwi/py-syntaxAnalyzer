@@ -1,4 +1,5 @@
-// let y = 0;
+field int size, height, width, clowns;
+let y = 0;
 let str = "string constant test";
 let number_1 = 2751;
 let expr = scaleFactor;

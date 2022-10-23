@@ -101,7 +101,7 @@ class CompilationEngine:
 
 	# calls compile on whatever needs testing at the moment
 	def testCompile(self):
-		self.compileLet()
+		self.compileClassVarDec()
 		pass
 
 	# compiles a complete class. called after the constructor
@@ -158,20 +158,31 @@ class CompilationEngine:
 		:return: true if one was found, false if not
 		"""
 		o = self.out
-		o.write('<classVarDec>')
+		o.write('<classVarDec>\n')
 
-		self.advance(skipNextAdvOnEat=True)
+		self.advance()
 
 		# static or field?
 		assert self.tk.getTokenType() == TokenType.KEYWORD
+		assert self.tk.keyWord() in ['static', 'field']
+		o.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 
-		# type → advance, if TokenType is keyword: int char or boolean?
+		# type → advance, if TokenType is keyword: int char or boolean
+		self.advance()
+		match self.tk.getTokenType():
+			case TokenType.KEYWORD:
+				# process int, char, boolean
+				assert self.tk.keyWord() in ['int', 'char', 'boolean']
+				o.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
+			case TokenType.IDENTIFIER:
+				# process className
+				self.compileIdentifier()
+			case other:
+				raise ValueError(f'did not find identifier or keyword token: {self.tk.getTokenType()}')
 
-		# varName
-
-		# (',' varName)*
-
-		o.write('</classVarDec>')
+		# varName(',' varName)*
+		self.__compileVarNameList()
+		o.write('</classVarDec>\n')
 
 	# compiles a complete method, function, or constructor
 	def compileSubroutineDec(self):
