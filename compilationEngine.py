@@ -307,17 +307,14 @@ class CompilationEngine:
 		self.compileIdentifier()
 		self.advance(skipNextAdvOnEat=True)  # check ahead to see: ',' or ';' ?
 
-		sym = self.tk.symbol()
-		assert sym == ',' or sym == ';'
-		match sym:
-			case ',':
-				pass
-			case ';':
-				pass
-			case _:
-				raise ValueError(f'varName list did not encounter , or ;')
-		# TODO this should be a while loop and only do (',' varName) pairs
+		# (',' varName)*
+		while self.tk.symbol() == ',':
+			self.eat(',')
+			self.compileIdentifier()
+			self.advance(skipNextAdvOnEat=True)
 
+		# the only token we have left is ';'
+		self.eat(';')
 
 	# eats token = identifier, checks type
 	def compileIdentifier(self):
