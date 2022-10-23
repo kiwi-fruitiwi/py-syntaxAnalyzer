@@ -152,7 +152,7 @@ class CompilationEngine:
 		</classVarDec>
 
 		used by compileClass, following this pattern:
-		(static | field) type varName (, varName)* ';'
+		(static | field) type varName (',' varName)* ';'
 		type → int | char | boolean | className
 
 		:return: true if one was found, false if not
@@ -294,6 +294,30 @@ class CompilationEngine:
 					return True
 				case _:
 					raise ValueError(f'did not find let, if, while, do, or return → {self.tk.keyWord()}')
+
+	# helper method for compileClassVarDec, compileVarDec
+	# classVarDec pattern: (static | field) type varName (, varName)* ';'
+	# varDec: var type varName (, varName)* ';'
+	#
+	# the pattern we are targeting is:
+	# 	varName (',' varName)*;
+	# the goal is to implement this repeated handling code once here
+	def __compileVarNameList(self):
+		# varName
+		self.compileIdentifier()
+		self.advance(skipNextAdvOnEat=True)  # check ahead to see: ',' or ';' ?
+
+		sym = self.tk.symbol()
+		assert sym == ',' or sym == ';'
+		match sym:
+			case ',':
+				pass
+			case ';':
+				pass
+			case _:
+				raise ValueError(f'varName list did not encounter , or ;')
+		# TODO this should be a while loop and only do (',' varName) pairs
+
 
 	# eats token = identifier, checks type
 	def compileIdentifier(self):
