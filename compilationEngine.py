@@ -101,7 +101,7 @@ class CompilationEngine:
 
 	# calls compile on whatever needs testing at the moment
 	def testCompile(self):
-		self.compileClassVarDec()
+		self.compileVarDec()
 		pass
 
 	# compiles a complete class. called after the constructor
@@ -172,6 +172,7 @@ class CompilationEngine:
 		o.write('</classVarDec>\n')
 
 	# helper method for classVarDec, subroutineDec, parameterList, carDec
+	# pattern: int | char | boolean | className
 	def __compileType(self):
 		# type → advance, if TokenType is keyword: int char or boolean
 		self.advance()
@@ -182,7 +183,7 @@ class CompilationEngine:
 				self.out.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 			case TokenType.IDENTIFIER:
 				# process className
-				self.compileIdentifier()
+				self.compileIdentifier(skipAdvance=True)
 			case _:
 				raise ValueError(
 					f'did not find identifier or keyword token: {self.tk.getTokenType()}')
@@ -274,14 +275,12 @@ class CompilationEngine:
 		o = self.out
 		o.write('<varDec>\n')
 
-		# var
+		# var type varName
+		self.eat('var')
+		self.__compileType()
 
-		# type
-
-		# varName
-
-		# (',' varName)*';'
-
+		# varName (',' varName)*';'
+		self.__compileVarNameList()
 		o.write('</varDec>\n')
 
 	# compiles a sequence of statements. does not handle enclosing '{}'
@@ -412,14 +411,16 @@ class CompilationEngine:
 		self.eat(';')
 
 	# eats token = identifier, checks type
-	def compileIdentifier(self):
+	def compileIdentifier(self, skipAdvance=False):
 		o = self.out  # makes code more readable
 
 		# we actually don't eat because we're not sure what identifier it is
 		# instead, we advance and assert tokenType
-		self.advance()
+		if not skipAdvance:
+			self.advance()
+
 		# print(f'{self.tk.getTokenType()}')
-		assert self.tk.getTokenType() == TokenType.IDENTIFIER
+		assert self.tk.getTokenType() == TokenType.IDENTIFIER, f'{self.tk.getTokenType()}'
 
 		# then write <identifier> value </identifier>
 		o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')

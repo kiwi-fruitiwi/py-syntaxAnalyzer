@@ -1,3 +1,5 @@
+var SquareGame game;
+var int x, y; // screen location of the square's top-left corner
 field int size, height, width, clowns;
 let y = 0;
 let str = "string constant test";
