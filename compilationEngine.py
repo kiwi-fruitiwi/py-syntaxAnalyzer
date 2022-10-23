@@ -154,8 +154,6 @@ class CompilationEngine:
 		used by compileClass, following this pattern:
 		(static | field) type varName (',' varName)* ';'
 		type → int | char | boolean | className
-
-		:return: true if one was found, false if not
 		"""
 		o = self.out
 		o.write('<classVarDec>\n')
@@ -167,22 +165,27 @@ class CompilationEngine:
 		assert self.tk.keyWord() in ['static', 'field']
 		o.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 
+		self.__compileType()
+
+		# varName(',' varName)*
+		self.__compileVarNameList()
+		o.write('</classVarDec>\n')
+
+	# helper method for classVarDec, subroutineDec, parameterList, carDec
+	def __compileType(self):
 		# type → advance, if TokenType is keyword: int char or boolean
 		self.advance()
 		match self.tk.getTokenType():
 			case TokenType.KEYWORD:
 				# process int, char, boolean
 				assert self.tk.keyWord() in ['int', 'char', 'boolean']
-				o.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
+				self.out.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 			case TokenType.IDENTIFIER:
 				# process className
 				self.compileIdentifier()
-			case other:
-				raise ValueError(f'did not find identifier or keyword token: {self.tk.getTokenType()}')
-
-		# varName(',' varName)*
-		self.__compileVarNameList()
-		o.write('</classVarDec>\n')
+			case _:
+				raise ValueError(
+					f'did not find identifier or keyword token: {self.tk.getTokenType()}')
 
 	# compiles a complete method, function, or constructor
 	def compileSubroutineDec(self):
@@ -190,6 +193,22 @@ class CompilationEngine:
 
 	# compiles a (possibly empty) parameter list. does not handle enclosing '()'
 	def compileParameterList(self):
+		"""
+		<parameterList>
+		  <keyword> int </keyword>
+		  <identifier> Ax </identifier>
+		  <symbol> , </symbol>
+		  <keyword> int </keyword>
+		  <identifier> Ay </identifier>
+		  <symbol> , </symbol>
+		  <keyword> int </keyword>
+		  <identifier> Asize </identifier>
+		</parameterList>
+
+		follows pattern:
+			((type varName) (, type varName)*)?
+		"""
+
 		pass
 
 	# compiles a subroutine's body
