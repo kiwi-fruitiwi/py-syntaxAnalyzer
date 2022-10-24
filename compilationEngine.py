@@ -207,9 +207,24 @@ class CompilationEngine:
 
 		follows pattern:
 			((type varName) (, type varName)*)?
+			note that the entire pattern could be empty
+				the character after parameterList ends is always ')'
 		"""
+		o = self.out
+		o.write('<parameterList>\n')
 
-		pass
+		self.advance(skipNextAdvOnEat=True)
+
+		# if next symbol is ')', end the parameterList
+		o.write('</parameterList>\n')
+
+		# otherwise the next symbol MUST be a type: int char bool className
+		# consume: type varName
+
+		# then while next token is ',', consume type varName
+		# if not, assert ')', then end parameterList
+
+		o.write('</parameterList>\n')
 
 	# compiles a subroutine's body
 	def compileSubroutineBody(self):
