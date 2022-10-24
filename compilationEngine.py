@@ -247,7 +247,42 @@ class CompilationEngine:
 
 	# compiles a var declaration
 	def compileVarDec(self):
-		pass
+		"""
+	    <varDec>
+	    	<keyword> var </keyword>
+	    	<identifier> Array </identifier>
+	    	<identifier> a </identifier>
+	    	<symbol> ; </symbol>
+	    </varDec>
+	    <varDec>
+	    	<keyword> var </keyword>
+	    	<keyword> int </keyword>
+	    	<identifier> length </identifier>
+	    	<symbol> ; </symbol>
+	    </varDec>
+	    <varDec>
+	    	<keyword> var </keyword>
+	    	<keyword> int </keyword>
+	    	<identifier> i </identifier>
+	    	<symbol> , </symbol>
+	    	<identifier> sum </identifier>
+	    	<symbol> ; </symbol>
+	    </varDec>
+
+	    pattern: var type varName (',' varName)*';'
+		"""
+		o = self.out
+		o.write('<varDec>\n')
+
+		# var
+
+		# type
+
+		# varName
+
+		# (',' varName)*';'
+
+		o.write('</varDec>\n')
 
 	# compiles a sequence of statements. does not handle enclosing '{}'
 	# a statement is one of 5 options: let, if, while, do, return
