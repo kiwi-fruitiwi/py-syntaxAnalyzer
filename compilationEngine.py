@@ -216,14 +216,29 @@ class CompilationEngine:
 		self.advance(skipNextAdvOnEat=True)
 
 		# if next symbol is ')', end the parameterList
-		o.write('</parameterList>\n')
+		if self.tk.getTokenType() == TokenType.SYMBOL:
+			o.write('</parameterList>\n')
+			return
 
 		# otherwise the next symbol MUST be a type: int char bool className
 		# consume: type varName
+		self.__compileType()  # type
+		self.compileIdentifier()  # varName
 
 		# then while next token is ',', consume type varName
-		# if not, assert ')', then end parameterList
+		self.advance(skipNextAdvOnEat=True)
 
+		# pattern: (, type varName)*
+		# next token must be either ',' or ';'
+		assert self.tk.getTokenType() == TokenType.SYMBOL
+		while self.tk.symbol() == ',':
+			self.eat(',')
+			self.compileIdentifier()
+			self.advance(skipNextAdvOnEat=True)  # check next symbol: ',' or ';'
+
+		# if not ',', must be ')' → end parameterList
+		assert self.tk.symbol() == ';'
+		self.eat(';')
 		o.write('</parameterList>\n')
 
 	# compiles a subroutine's body
