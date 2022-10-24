@@ -101,7 +101,7 @@ class CompilationEngine:
 
 	# calls compile on whatever needs testing at the moment
 	def testCompile(self):
-		self.compileVarDec()
+		self.compileClassVarDec()
 		pass
 
 	# compiles a complete class. called after the constructor
@@ -243,7 +243,54 @@ class CompilationEngine:
 		o.write('</parameterList>\n')
 
 	# compiles a subroutine's body
+	# pattern: '{' varDec* statements'}'
 	def compileSubroutineBody(self):
+		"""
+		<subroutineBody>
+		  <symbol> { </symbol>
+		  <statements>
+
+			<letStatement>
+			  <keyword> let </keyword>
+			  <identifier> x </identifier>
+			  <symbol> = </symbol>
+			  <expression>
+				<term>
+				  <identifier> Ax </identifier>
+				</term>
+			  </expression>
+			  <symbol> ; </symbol>
+			</letStatement>
+
+			<returnStatement>
+			  <keyword> return </keyword>
+			  <expression>
+				<term>
+				  <identifier> x </identifier>
+				</term>
+			  </expression>
+			  <symbol> ; </symbol>
+			</returnStatement>
+
+		  </statements>
+		  <symbol> } </symbol>
+		</subroutineBody>
+
+		🏭 our aim is to match the pattern: '{' varDec* statements'}'
+		"""
+		o = self.out
+		o.write('<subroutineBody>\n')
+
+		self.eat('{')
+
+		# varDec* vs statements
+		# varDec always starts with 'var'
+		# statements always starts with keyword in [let, if, while, do, return]
+
+		self.eat('}')
+
+		o.write('</subroutineBody>\n')
+
 		pass
 
 	# compiles a var declaration

@@ -1,9 +1,9 @@
-var SquareGame game;
-var int x, y; // screen location of the square's top-left corner
 field int size, height, width, clowns;
 let y = 0;
 let str = "string constant test";
 let number_1 = 2751;
 let expr = scaleFactor;
-// let a[5] = 7;
-// let a[i] = Keyboard.readInt("ENTER THE NEXT NUMBER: ");
+let a[5] = 7;
+let a[i] = Keyboard.readInt("ENTER THE NEXT NUMBER: ");
+var SquareGame game;
+var int x, y; // screen location of the square's top-left corner
