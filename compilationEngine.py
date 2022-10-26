@@ -192,7 +192,54 @@ class CompilationEngine:
 
 	# compiles a complete method, function, or constructor
 	def compileSubroutineDec(self):
-		pass
+		"""
+		:return: True if we found a subroutineDec, False if not
+			this is so we can use while self.compileSubroutineDec
+		"""
+		self.advance(skipNextAdvOnEat=True)
+
+		# if compileSubroutineDec is being called, it must start with:
+		# 'constructor', 'function', or 'method'
+		# so if it doesn't, we can return False
+		if self.tk.getTokenType() != TokenType.KEYWORD:
+			return False
+		else:
+			keywordValue = self.tk.keyWord()
+			if keywordValue not in ['constructor', 'function', 'method']:
+				return False
+			else:
+				# starts with the right keyword for subroutineDec!
+				self.__subroutineDecHelper()
+
+	# compiles subroutineDec
+	def __subroutineDecHelper(self):
+		"""
+		  <subroutineDec>
+			<keyword> method </keyword>
+			<keyword> void </keyword>
+			<identifier> dispose </identifier>
+			<symbol> ( </symbol>
+			<parameterList>
+			</parameterList>
+			<symbol> ) </symbol>
+			<subroutineBody>
+			  <symbol> { </symbol>
+			  <statements>
+			  	...
+			  </statements>
+			  <symbol> } </symbol>
+			</subroutineBody>
+		  </subroutineDec>
+
+		pattern: ('constructor'|'function'|'method') ('void'|type)
+			subroutineName (parameterList) subroutineBody
+		"""
+		o = self.out
+		o.write('<subroutineDec\n')
+
+
+
+		o.write('</subroutineDec\n')
 
 	# compiles a (possibly empty) parameter list. does not handle enclosing '()'
 	def compileParameterList(self):
@@ -412,8 +459,7 @@ class CompilationEngine:
 
 		:return: true if a statement was found, false if not
 		"""
-		self.advance()
-		self.skipNextAdvanceOnEat = True
+		self.advance(skipNextAdvOnEat=True)
 
 		# if compileStatement is being called, tokenType must be one of
 		# {let, if, while, do, return}
@@ -621,7 +667,7 @@ class CompilationEngine:
 		# 	identifier (className | varName) → '.' e.g. obj.render(x, y)
 		# 	identifier (subroutineName) → '(' e.g. render(x, y)
 		self.advance()
-		o.write(f'<identifier> {self.tk.identifier()} </identifier')
+		o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
 
 		self.advance(skipNextAdvOnEat=True)
 
@@ -630,7 +676,7 @@ class CompilationEngine:
 			self.eat('.')
 			# advance and grab the subroutineName
 			self.advance()
-			o.write(f'<identifier> {self.tk.identifier()} </identifier')
+			o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
 
 		# then eat('(') → compileExpressionList
 		self.eat('(')
@@ -811,7 +857,7 @@ class CompilationEngine:
 		# (expression (',' expression)*)?
 
 		o = self.out
-		o.write('<expressionList>')
+		o.write('<expressionList>\n')
 		# how do we check if an expression exists? if it's ')', exprList empty
 		# e.g. out.write('compiler') vs out.write()
 		# hitting the last ')' ensures the expressionList is done
@@ -819,7 +865,7 @@ class CompilationEngine:
 
 		if self.tk.symbol() == ')':
 			self.eat(')')
-			o.write('</expressionList>')
+			o.write('</expressionList>\n')
 		else:
 			self.compileExpression()
 
