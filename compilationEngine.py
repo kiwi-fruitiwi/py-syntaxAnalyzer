@@ -101,7 +101,9 @@ class CompilationEngine:
 
 	# calls compile on whatever needs testing at the moment
 	def testCompile(self):
-		self.compileClassVarDec()
+		# self.compileClassVarDec()
+		# self.compileSubroutineBody()
+		self.compileSubroutineBody()
 		pass
 
 	# compiles a complete class. called after the constructor
@@ -280,18 +282,19 @@ class CompilationEngine:
 		"""
 		o = self.out
 		o.write('<subroutineBody>\n')
-
 		self.eat('{')
 
 		# varDec* vs statements
+		self.advance(skipNextAdvOnEat=True)
+
 		# varDec always starts with 'var'
+		while self.tk.getTokenType() == TokenType.KEYWORD:
+			self.compileVarDec()
+
 		# statements always starts with keyword in [let, if, while, do, return]
-
+		self.compileStatements()
 		self.eat('}')
-
 		o.write('</subroutineBody>\n')
-
-		pass
 
 	# compiles a var declaration
 	def compileVarDec(self):

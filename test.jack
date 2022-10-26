@@ -1,3 +1,12 @@
+{
+    var SquareGame game;
+    let game = game;
+    do game.run();
+    do game.dispose();
+    return;
+}
+
+
 field int size, height, width, clowns;
 let y = 0;
 let str = "string constant test";
