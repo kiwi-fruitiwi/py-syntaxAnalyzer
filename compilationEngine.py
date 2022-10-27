@@ -103,7 +103,11 @@ class CompilationEngine:
 	def testCompile(self):
 		# self.compileClassVarDec()
 		# self.compileSubroutineBody()
-		self.compileSubroutineBody()
+		# self.compileVarDec()
+		self.compileSubroutineDec()
+		# self.compileReturn()
+		# self.compileStatements()
+
 		pass
 
 	# compiles a complete class. called after the constructor
@@ -175,9 +179,12 @@ class CompilationEngine:
 
 	# helper method for classVarDec, subroutineDec, parameterList, carDec
 	# pattern: int | char | boolean | className
-	def __compileType(self):
+	def __compileType(self, alreadyAdvanced=False):
+		# TODO standardize 'alreadyAdvanced' vs 'skipAdvance' flag name
 		# type → advance, if TokenType is keyword: int char or boolean
-		self.advance()
+		if not alreadyAdvanced:
+			self.advance()
+
 		match self.tk.getTokenType():
 			case TokenType.KEYWORD:
 				# process int, char, boolean
@@ -196,6 +203,7 @@ class CompilationEngine:
 		:return: True if we found a subroutineDec, False if not
 			this is so we can use while self.compileSubroutineDec
 		"""
+		# skipNextAdvOnEat because we might fail to find a subroutineDec
 		self.advance(skipNextAdvOnEat=True)
 
 		# if compileSubroutineDec is being called, it must start with:
@@ -211,7 +219,7 @@ class CompilationEngine:
 				# starts with the right keyword for subroutineDec!
 				self.__subroutineDecHelper()
 
-	# compiles subroutineDec
+	# helper method that compiles subroutineDec with the help of detector logic
 	def __subroutineDecHelper(self):
 		"""
 		  <subroutineDec>
@@ -232,14 +240,39 @@ class CompilationEngine:
 		  </subroutineDec>
 
 		pattern: ('constructor'|'function'|'method') ('void'|type)
-			subroutineName (parameterList) subroutineBody
+			subroutineName '('parameterList')' subroutineBody
 		"""
 		o = self.out
-		o.write('<subroutineDec\n')
+		o.write('<subroutineDec>\n')
 
+		# remember we've already advanced when calling __subroutineDecHelper
+		# the skipOnNextEat flag is set to True
+		# we've already checked for keywordValue not in:
+		# 	['constructor', 'function', 'method']
 
+		# ('constructor'|'function'|'method')
+		keywordValue = self.tk.keyWord()
+		o.write(f'<keyword> {keywordValue} </keyword>')
 
-		o.write('</subroutineDec\n')
+		# ('void'|type)
+		self.advance(skipNextAdvOnEat=True)
+
+		if self.tk.getTokenType() == TokenType.KEYWORD:
+			self.eat('void')
+		else:
+			self.__compileType(alreadyAdvanced=True)
+
+		# subroutineName
+		self.compileIdentifier()
+
+		# '(' parameterList ')'
+		self.eat('(')
+		self.compileParameterList()
+		self.eat(')')
+
+		# subroutineBody
+		self.compileSubroutineBody()
+		o.write('</subroutineDec>\n')
 
 	# compiles a (possibly empty) parameter list. does not handle enclosing '()'
 	def compileParameterList(self):
@@ -286,10 +319,13 @@ class CompilationEngine:
 			self.compileIdentifier()
 			self.advance(skipNextAdvOnEat=True)  # check next symbol: ',' or ';'
 
+		o.write('</parameterList>\n')
+
+		'''
 		# if not ',', must be ')' → end parameterList
 		assert self.tk.symbol() == ';'
 		self.eat(';')
-		o.write('</parameterList>\n')
+		'''
 
 	# compiles a subroutine's body
 	# pattern: '{' varDec* statements'}'
@@ -591,7 +627,7 @@ class CompilationEngine:
 		o = self.out
 
 		# if '(' expression ')'
-		o.write('<ifStatement>')
+		o.write('<ifStatement>\n')
 		self.eat('if')
 		self.__compileExprWithinParens()
 
@@ -602,6 +638,7 @@ class CompilationEngine:
 		self.advance()  # check for else token
 		if self.tk.getTokenType() == TokenType.KEYWORD:
 			if self.tk.keyWord() == 'else':
+				o.write('<keyword> else </keyword>')
 				self.__compileStatementsWithinBrackets()
 			else:  # we've already advanced once to check the else keyword
 				self.skipNextAdvanceOnEat = True
@@ -699,6 +736,7 @@ class CompilationEngine:
           <symbol> ; </symbol>
         </returnStatement>
 
+		'return' expression? ';'
 		:return:
 		"""
 		o = self.out
@@ -711,36 +749,40 @@ class CompilationEngine:
 		# the next token is either a ';' or an expression
 		# expressions are more difficult to check for so, check for symbol ';'
 		# if it's a ';' we're done! although unary ops can start terms
-		self.advance(skipNextAdvOnEat=True)
+		self.advance()
 
 		if self.tk.getTokenType() == TokenType.SYMBOL:
-			currentSymbol = self.tk.symbol()
-			if currentSymbol == ';':
-				# we already advanced! set advanceFlag anyway. redundant with
-				# self.skipNextAdvance being True though.
-				self.eat(';')
-			else:
-				# unaryOp is part of the definition of a term
-				if currentSymbol == '-' or currentSymbol == '~':
-					self.compileExpression()
-		else:
-			self.compileExpression()
+			if self.tk.symbol == ';':
 
-		o.write('</returnStatement>\n')
+				self.skipNextAdvanceOnEat = True
+				self.eat(';')
+				o.write('</returnStatement>\n')
+				return
+		else:
+			# there's an expression in → expression? ';'
+			self.compileExpression(alreadyAdvanced=True)
+			self.eat(';')
+			o.write('</returnStatement>\n')
 
 	# the expressionless tests for project 10 use simplified 'term' tokens
 	# that can only be single identifiers or the keyword 'this'.
-	def compileSimpleTerm(self):
+	def compileSimpleTerm(self, alreadyAdvanced=False):
 		o = self.out
 		# the simple version of this rule is identifier | 'this' ←🦔
-		self.advance()
+
+		if not alreadyAdvanced:
+			self.advance()
+
+		print(self.tk.getTokenType())
 
 		match self.tk.getTokenType():
 			case TokenType.IDENTIFIER:
-				o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
+				value = self.tk.identifier()
+				o.write(f'<identifier> {value} </identifier>\n')
 			case TokenType.KEYWORD:
-				assert self.tk.keyWord() == 'this'
-				o.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
+				assert self.tk.keyWord() in ['this', 'false', 'true', 'null']
+				value = self.tk.keyWord()
+				o.write(f'<keyword> {value} </keyword>\n')
 
 			# adding extra cases: integer and string constant
 			case TokenType.INT_CONST:
@@ -749,8 +791,13 @@ class CompilationEngine:
 			case TokenType.STRING_CONST:
 				value = self.tk.stringVal()
 				o.write(f'<stringConstant> {value} </stringConstant>\n')
+
+			# TODO technically we do unaryOp term here
+			case TokenType.SYMBOL:
+				value = self.tk.symbol()
+				o.write(f'<symbol> {value} </symbol>\n')
 			case _:
-				raise ValueError(f'simple term was not an identifier or "this"')
+				raise ValueError(f'simple term was not an identifier or keywordConstant: {self.tk.getTokenType()}→{value}')
 
 	# compiles a term. if the current token is an identifier, the routine must
 	# distinguish between a variable, an array entry, or a subroutine call. a
@@ -825,10 +872,10 @@ class CompilationEngine:
 				raise TypeError(f'invalid TokenType: {self.tk.getTokenType()}')
 
 	# not used in the first pass
-	def compileExpression(self):
+	def compileExpression(self, alreadyAdvanced=False):
 		# temporarily call compileTerm for expressionLessSquare testing
 		# when we're ready to test expressions, then we can test Square
- 		self.compileSimpleTerm()
+ 		self.compileSimpleTerm(alreadyAdvanced)
 
 	# compiles a (possibly empty) comma-separated list of expressions
 	# (expression (',' expression)*)?
@@ -939,7 +986,7 @@ class CompilationEngine:
 								  f'identifier, int constant, or string constant: {tokenType}')
 		# assert expectedToken matches actual token
 		# print(f'[eating → {value}]')
-		assert expectedTokenValue == value, f'expected: {expectedTokenValue}, actual:{value}'
+		assert expectedTokenValue == value, f'expected: {expectedTokenValue}, actual: {value}'
 
 	# wrapper for self.tk.advance. sets skipNextAdvance flag for us
 	def advance(self, skipNextAdvOnEat=False):
