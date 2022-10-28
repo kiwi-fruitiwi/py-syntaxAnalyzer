@@ -8,7 +8,8 @@ method void dispose () {
     else { // There is no else keyword in the Square files.
         let x = this;
     }
-    return;
+
+    return 5;
 }
 
 {
