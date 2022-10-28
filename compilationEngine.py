@@ -96,7 +96,7 @@ class CompilationEngine:
 		# unsure about difference between Foo.bar(exprList) vs foo.bar(exprList)
 
 		# if true, the next eat() doesn't advance
-		self.skipNextAdvanceOnEat = False
+		self.skipNextAdvance = False
 		pass
 
 	# calls compile on whatever needs testing at the moment
@@ -204,7 +204,7 @@ class CompilationEngine:
 			this is so we can use while self.compileSubroutineDec
 		"""
 		# skipNextAdvOnEat because we might fail to find a subroutineDec
-		self.advance(skipNextAdvOnEat=True)
+		self.advance(skipNextAdv=True)
 
 		# if compileSubroutineDec is being called, it must start with:
 		# 'constructor', 'function', or 'method'
@@ -255,7 +255,7 @@ class CompilationEngine:
 		o.write(f'<keyword> {keywordValue} </keyword>')
 
 		# ('void'|type)
-		self.advance(skipNextAdvOnEat=True)
+		self.advance(skipNextAdv=True)
 
 		if self.tk.getTokenType() == TokenType.KEYWORD:
 			self.eat('void')
@@ -296,7 +296,7 @@ class CompilationEngine:
 		o = self.out
 		o.write('<parameterList>\n')
 
-		self.advance(skipNextAdvOnEat=True)
+		self.advance(skipNextAdv=True)
 
 		# if next symbol is ')', end the parameterList
 		if self.tk.getTokenType() == TokenType.SYMBOL:
@@ -309,7 +309,7 @@ class CompilationEngine:
 		self.compileIdentifier()  # varName
 
 		# then while next token is ',', consume type varName
-		self.advance(skipNextAdvOnEat=True)
+		self.advance(skipNextAdv=True)
 
 		# pattern: (, type varName)*
 		# next token must be either ',' or ';'
@@ -317,7 +317,7 @@ class CompilationEngine:
 		while self.tk.symbol() == ',':
 			self.eat(',')
 			self.compileIdentifier()
-			self.advance(skipNextAdvOnEat=True)  # check next symbol: ',' or ';'
+			self.advance(skipNextAdv=True)  # check next symbol: ',' or ';'
 
 		o.write('</parameterList>\n')
 
@@ -368,7 +368,7 @@ class CompilationEngine:
 		self.eat('{')
 
 		# varDec* vs statements
-		self.advance(skipNextAdvOnEat=True)
+		self.advance(skipNextAdv=True)
 
 		# varDec always starts with 'var'
 		while self.tk.getTokenType() == TokenType.KEYWORD:
@@ -495,7 +495,7 @@ class CompilationEngine:
 
 		:return: true if a statement was found, false if not
 		"""
-		self.advance(skipNextAdvOnEat=True)
+		self.advance(skipNextAdv=True)
 
 		# if compileStatement is being called, tokenType must be one of
 		# {let, if, while, do, return}
@@ -531,13 +531,13 @@ class CompilationEngine:
 	def __compileVarNameList(self):
 		# varName
 		self.compileIdentifier()
-		self.advance(skipNextAdvOnEat=True)  # check ahead to see: ',' or ';' ?
+		self.advance(skipNextAdv=True)  # check ahead to see: ',' or ';' ?
 
 		# (',' varName)*
 		while self.tk.symbol() == ',':
 			self.eat(',')
 			self.compileIdentifier()
-			self.advance(skipNextAdvOnEat=True)
+			self.advance(skipNextAdv=True)
 
 		# the only token we have left is ';'
 		self.eat(';')
@@ -572,7 +572,7 @@ class CompilationEngine:
 		self.compileIdentifier()
 
 		# check next token for two options: '[' or '='
-		self.advance(skipNextAdvOnEat=True)
+		self.advance(skipNextAdv=True)
 
 		# assert it's a symbol
 		assert self.tk.getTokenType() == TokenType.SYMBOL
@@ -638,10 +638,10 @@ class CompilationEngine:
 		self.advance()  # check for else token
 		if self.tk.getTokenType() == TokenType.KEYWORD:
 			if self.tk.keyWord() == 'else':
-				o.write('<keyword> else </keyword>')
+				o.write('<keyword> else </keyword>\n')
 				self.__compileStatementsWithinBrackets()
 			else:  # we've already advanced once to check the else keyword
-				self.skipNextAdvanceOnEat = True
+				self.skipNextAdvance = True
 
 		o.write('</ifStatement>\n')
 
@@ -706,7 +706,7 @@ class CompilationEngine:
 		self.advance()
 		o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
 
-		self.advance(skipNextAdvOnEat=True)
+		self.advance(skipNextAdv=True)
 
 		# handling the ',render' subroutineName after '.'
 		if self.tk.symbol() == '.':
@@ -749,29 +749,29 @@ class CompilationEngine:
 		# the next token is either a ';' or an expression
 		# expressions are more difficult to check for so, check for symbol ';'
 		# if it's a ';' we're done! although unary ops can start terms
-		self.advance()
+		self.advance(skipNextAdv=True)
 
 		if self.tk.getTokenType() == TokenType.SYMBOL:
 			if self.tk.symbol == ';':
-
-				self.skipNextAdvanceOnEat = True
 				self.eat(';')
 				o.write('</returnStatement>\n')
 				return
 		else:
 			# there's an expression in → expression? ';'
-			self.compileExpression(alreadyAdvanced=True)
+			self.compileExpression()
 			self.eat(';')
 			o.write('</returnStatement>\n')
 
 	# the expressionless tests for project 10 use simplified 'term' tokens
 	# that can only be single identifiers or the keyword 'this'.
-	def compileSimpleTerm(self, alreadyAdvanced=False):
+	def compileSimpleTerm(self):
 		o = self.out
 		# the simple version of this rule is identifier | 'this' ←🦔
 
-		if not alreadyAdvanced:
+		# TODO encapsulate this
+		if not self.skipNextAdvance:
 			self.advance()
+			self.skipNextAdvance = False
 
 		print(self.tk.getTokenType())
 
@@ -872,10 +872,10 @@ class CompilationEngine:
 				raise TypeError(f'invalid TokenType: {self.tk.getTokenType()}')
 
 	# not used in the first pass
-	def compileExpression(self, alreadyAdvanced=False):
+	def compileExpression(self):
 		# temporarily call compileTerm for expressionLessSquare testing
 		# when we're ready to test expressions, then we can test Square
- 		self.compileSimpleTerm(alreadyAdvanced)
+ 		self.compileSimpleTerm()
 
 	# compiles a (possibly empty) comma-separated list of expressions
 	# (expression (',' expression)*)?
@@ -908,7 +908,7 @@ class CompilationEngine:
 		# how do we check if an expression exists? if it's ')', exprList empty
 		# e.g. out.write('compiler') vs out.write()
 		# hitting the last ')' ensures the expressionList is done
-		self.advance(skipNextAdvOnEat=True)
+		self.advance(skipNextAdv=True)
 
 		if self.tk.symbol() == ')':
 			self.eat(')')
@@ -916,14 +916,14 @@ class CompilationEngine:
 		else:
 			self.compileExpression()
 
-		self.advance(skipNextAdvOnEat=True)
+		self.advance(skipNextAdv=True)
 
 		# after compileExpression, next token has only two options:  ')' vs ','
 		# ',' corresponds to (',' expression)*. eat(',') → compileExpression
 		while self.tk.symbol() == ',':
 			self.eat(',')
 			self.compileExpression()
-			self.advance(skipNextAdvOnEat=True)
+			self.advance(skipNextAdv=True)
 
 		# ending case: ')' means we're done
 		# TODO potential bug double evaluating ')' in subroutineName(exprList)
@@ -953,15 +953,15 @@ class CompilationEngine:
 		# ∴ only advance if skipNextAdvance=False, advanceFlag=True
 
 		# if not self.skipNextAdvanceOnEat and advanceFlag:
-		if not self.skipNextAdvanceOnEat:
+		if not self.skipNextAdvance:
 			# skip advance if flag is on from LL2 read-ahead situation
 			# → see term: foo, foo[expr], foo.bar(exprList), bar(exprList)
 			# turn off the "skip next eat()'s advance()" toggle if it's on
 			self.advance()
 
 		# reset the flag now that we've 'consumed' an eat command
-		if self.skipNextAdvanceOnEat:
-			self.skipNextAdvanceOnEat = False
+		if self.skipNextAdvance:
+			self.skipNextAdvance = False
 
 		tokenType = self.tk.getTokenType()  # current token
 
@@ -989,6 +989,6 @@ class CompilationEngine:
 		assert expectedTokenValue == value, f'expected: {expectedTokenValue}, actual: {value}'
 
 	# wrapper for self.tk.advance. sets skipNextAdvance flag for us
-	def advance(self, skipNextAdvOnEat=False):
+	def advance(self, skipNextAdv=False):
 		self.tk.advance()
-		self.skipNextAdvanceOnEat = skipNextAdvOnEat
+		self.skipNextAdvance = skipNextAdv
