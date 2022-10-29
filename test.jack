@@ -1,32 +1,28 @@
-method void dispose () {
-    var int i, j;
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/10/ExpressionLessSquare/Main.jack
 
-    if (false) {
-        let s = "string constant";
-        let s = null;
+/** Expressionless version of projects/10/Square/Main.jack. */
+
+class Main {
+    static boolean test;    // Added for testing -- there is no static keyword
+                            // in the Square files.
+
+    function void main() {
+        var SquareGame game;
+        let game = game;
+        do game.run();
+        do game.dispose();
+        return;
     }
-    else { // There is no else keyword in the Square files.
-        let x = this;
+
+    function void more() {  // Added to test Jack syntax that is not used in
+        var boolean b;      // the Square files.
+        if (b) {
+        }
+        else {              // There is no else keyword in the Square files.
+        }
+        return;
     }
-
-    return 5;
 }
-
-{
-    var SquareGame game;
-    let game = game;
-    do game.run();
-    do game.dispose();
-    return;
-}
-
-
-field int size, height, width, clowns;
-let y = 0;
-let str = "string constant test";
-let number_1 = 2751;
-let expr = scaleFactor;
-let a[5] = 7;
-let a[i] = Keyboard.readInt("ENTER THE NEXT NUMBER: ");
-var SquareGame game;
-var int x, y; // screen location of the square's top-left corner

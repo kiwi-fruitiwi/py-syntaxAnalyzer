@@ -90,6 +90,9 @@ class CompilationEngine:
 		# open file for writing with URI=outputXML
 		self.out = open(outputXmlUri, 'w')
 
+		# indentation level of XML. after each tag, indent contents, then revert
+		self.indentLevel = 0
+
 		# sometimes compileTerm will need to do an additional advance for LL2.
 		# this flag tells us to skip the next advance() if that's the case.
 		# foo, foo[expr], foo.bar(exprList), bar(exprList)
@@ -104,9 +107,10 @@ class CompilationEngine:
 		# self.compileClassVarDec()
 		# self.compileSubroutineBody()
 		# self.compileVarDec()
-		self.compileSubroutineDec()
+		# self.compileSubroutineDec()
 		# self.compileReturn()
 		# self.compileStatements()
+		self.compileClass()
 
 		pass
 
@@ -180,7 +184,6 @@ class CompilationEngine:
 	# helper method for classVarDec, subroutineDec, parameterList, carDec
 	# pattern: int | char | boolean | className
 	def __compileType(self):
-		# TODO standardize 'alreadyAdvanced' vs 'skipAdvance' flag name
 		# type → advance, if TokenType is keyword: int char or boolean
 		self.advance()
 
@@ -191,7 +194,9 @@ class CompilationEngine:
 				self.out.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 			case TokenType.IDENTIFIER:
 				# process className
-				self.compileIdentifier(skipAdvance=True)
+
+				self.skipNextAdvance = True
+				self.compileIdentifier()
 			case _:
 				raise ValueError(
 					f'did not find identifier or keyword token: {self.tk.getTokenType()}')
@@ -758,6 +763,7 @@ class CompilationEngine:
 	# that can only be single identifiers or the keyword 'this'.
 	def compileSimpleTerm(self):
 		o = self.out
+		o.write('<term>\n')
 		# the simple version of this rule is identifier | 'this' ←🦔
 
 		self.advance()
@@ -786,6 +792,8 @@ class CompilationEngine:
 				o.write(f'<symbol> {value} </symbol>\n')
 			case _:
 				raise ValueError(f'simple term was not an identifier or keywordConstant: {self.tk.getTokenType()}→{value}')
+
+		o.write('</term>\n')
 
 	# compiles a term. if the current token is an identifier, the routine must
 	# distinguish between a variable, an array entry, or a subroutine call. a
@@ -861,9 +869,16 @@ class CompilationEngine:
 
 	# not used in the first pass
 	def compileExpression(self):
+		o = self.out
+		o.write('<expression>\n')
+		self.indentLevel += 1
+
 		# temporarily call compileTerm for expressionLessSquare testing
 		# when we're ready to test expressions, then we can test Square
- 		self.compileSimpleTerm()
+		self.compileSimpleTerm()
+
+		self.indentLevel -= 1
+		o.write('</expression>\n')
 
 	# compiles a (possibly empty) comma-separated list of expressions
 	# (expression (',' expression)*)?
