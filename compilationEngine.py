@@ -108,9 +108,10 @@ class CompilationEngine:
 		# self.compileSubroutineBody()
 		# self.compileVarDec()
 		# self.compileSubroutineDec()
-		# self.compileReturn()
+		self.compileReturn()
 		# self.compileStatements()
-		self.compileClass()
+		# self.compileClass()
+		# self.compileDo()
 
 		pass
 
@@ -714,7 +715,8 @@ class CompilationEngine:
 
 		# then eat('(') → compileExpressionList
 		self.eat('(')
-		self.compileExpressionList()  # TODO currently takes care of ending ')'
+		self.compileExpressionList()
+		self.eat(')')
 
 		# ';'
 		self.eat(';')
@@ -914,8 +916,8 @@ class CompilationEngine:
 		self.peek()
 
 		if self.tk.symbol() == ')':
-			self.eat(')')
 			o.write('</expressionList>\n')
+			return
 		else:
 			self.compileExpression()
 
@@ -933,7 +935,6 @@ class CompilationEngine:
 		# TODO maybe move this code to compileDo
 		if self.tk.symbol() == ')':
 			o.write('</expressionList>')
-			self.eat(')')
 
 	# we must have two versions of eat: one with advance and one without
 	# this is for cases with ()? or ()* and we must advance first before
