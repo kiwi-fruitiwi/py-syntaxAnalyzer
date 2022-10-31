@@ -150,6 +150,7 @@ class CompilationEngine:
 		while self.compileSubroutineDec():
 			continue
 
+		self.eat('}')
 		o.write('</class>\n')
 
 	# compiles a static variable or field declaration
@@ -223,6 +224,7 @@ class CompilationEngine:
 			else:
 				# starts with the right keyword for subroutineDec!
 				self.__subroutineDecHelper()
+				return True
 
 	# helper method that compiles subroutineDec with the help of detector logic
 	def __subroutineDecHelper(self):
