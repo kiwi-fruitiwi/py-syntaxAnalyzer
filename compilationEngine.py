@@ -108,9 +108,9 @@ class CompilationEngine:
 		# self.compileSubroutineBody()
 		# self.compileVarDec()
 		# self.compileSubroutineDec()
-		self.compileReturn()
+		# self.compileReturn()
 		# self.compileStatements()
-		# self.compileClass()
+		self.compileClass()
 		# self.compileDo()
 
 		pass
@@ -751,7 +751,7 @@ class CompilationEngine:
 		self.peek()
 
 		if self.tk.getTokenType() == TokenType.SYMBOL:
-			if self.tk.symbol == ';':
+			if self.tk.symbol() == ';':
 				self.eat(';')
 				o.write('</returnStatement>\n')
 				return
