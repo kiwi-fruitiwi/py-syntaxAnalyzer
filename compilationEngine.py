@@ -102,6 +102,15 @@ class CompilationEngine:
 		self.skipNextAdvance = False
 		pass
 
+	def indent(self):
+		self.indentLevel += 1
+
+	def outdent(self):
+		self.indentLevel -= 1
+
+	def write(self, s):
+		self.out.write(self.indentLevel * '\t' + s)
+
 	# calls compile on whatever needs testing at the moment
 	def testCompile(self):
 		# self.compileClassVarDec()
@@ -206,7 +215,7 @@ class CompilationEngine:
 	# compiles a complete method, function, or constructor
 	def compileSubroutineDec(self):
 		"""
-		:return: True if we found a subroutineDec, False if not
+		:return: True if we found a subroutineDec, False if not.
 			this is so we can use while self.compileSubroutineDec
 		"""
 		# skipNextAdvOnEat because we might fail to find a subroutineDec
@@ -482,7 +491,7 @@ class CompilationEngine:
 
 		# we want to try to compile {let, if, while, do, return} statements
 		# until we run out of those keywords
-		# ✒note! currently statements always ends with }
+		# ✒note! currently statements always ends with '}'
 		while self.__compileStatement():
 			# empty because we want to stop when it returns false
 			continue  # probably not necessary
@@ -490,7 +499,7 @@ class CompilationEngine:
 		o.write('</statements>\n')
 
 	# helper method for compileStatements, returning false if
-	# {let if while do return} are not found
+	# {let, if, while, do, return} are not found
 	def __compileStatement(self):
 		"""
 
@@ -866,8 +875,8 @@ class CompilationEngine:
 			case TokenType.SYMBOL:
 				value = self.tk.symbol()
 				# this will be unaryOp term: write op, recursively compileTerm
-				# but it can't be another unaryOp term?
-				pass
+				# can it be another unaryOp term?
+				print(f'inside compileTerm → {value}')
 			case _:
 				raise TypeError(f'invalid TokenType: {self.tk.getTokenType()}')
 
