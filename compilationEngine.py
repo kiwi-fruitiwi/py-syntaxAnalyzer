@@ -394,7 +394,7 @@ class CompilationEngine:
 		self.peek()
 
 		# varDec always starts with 'var'
-		while self.tk.getTokenType() == TokenType.KEYWORD:
+		while self.tk.getTokenType() == TokenType.KEYWORD and self.tk.keyWord() == 'var':
 			self.compileVarDec()
 
 		# statements always starts with keyword in [let, if, while, do, return]
