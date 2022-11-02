@@ -188,6 +188,8 @@ class CompilationEngine:
 
 		self.write('<classVarDec>\n')
 		self.indent()
+
+		self.advance()
 		self.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 		self.__compileType()
 
@@ -207,7 +209,7 @@ class CompilationEngine:
 		match self.tk.getTokenType():
 			case TokenType.KEYWORD:
 				# process int, char, boolean
-				assert self.tk.keyWord() in ['int', 'char', 'boolean']
+				assert self.tk.keyWord() in ['int', 'char', 'boolean'], f'{self.tk.keyWord()}'
 				self.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 			case TokenType.IDENTIFIER:
 				# process className
@@ -231,6 +233,7 @@ class CompilationEngine:
 		# 'constructor', 'function', or 'method'
 		# so if it doesn't, we can return False
 		if self.tk.getTokenType() != TokenType.KEYWORD:
+			print(f'compilesrtDec → {self.tk.getTokenType()}')
 			return False
 		else:
 			keywordValue = self.tk.keyWord()
@@ -273,6 +276,7 @@ class CompilationEngine:
 		# 	['constructor', 'function', 'method']
 
 		# ('constructor'|'function'|'method')
+		self.advance()
 		keywordValue = self.tk.keyWord()
 		self.write(f'<keyword> {keywordValue} </keyword>\n')
 
@@ -339,6 +343,7 @@ class CompilationEngine:
 		assert self.tk.getTokenType() == TokenType.SYMBOL
 		while self.tk.symbol() == ',':
 			self.eat(',')
+			self.__compileType()
 			self.compileIdentifier()
 			self.peek()  # check next symbol: ',' or ';'
 
@@ -1018,7 +1023,7 @@ class CompilationEngine:
 
 	# wrapper for self.tk.advance. skips next advance
 	def peek(self):
-		self.tk.advance()
+		self.advance()
 		self.skipNextAdvance = True
 
 	# advances unless 'skipNextAdvance' is True
