@@ -145,8 +145,8 @@ class CompilationEngine:
 
 		follows pattern: class className '{' classVarDec* subroutineDec* '}'
 		"""
-		o = self.out
-		o.write('<class>\n')
+		self.write('<class>\n')
+		self.indent()
 		self.eat('class')  # this will output <keyword> class </keyword>
 
 		# className is an identifier
@@ -160,7 +160,8 @@ class CompilationEngine:
 			continue
 
 		self.eat('}')
-		o.write('</class>\n')
+		self.outdent()
+		self.write('</class>\n')
 
 	# compiles a static variable or field declaration
 	def compileClassVarDec(self):
@@ -176,21 +177,26 @@ class CompilationEngine:
 		(static | field) type varName (',' varName)* ';'
 		type → int | char | boolean | className
 		"""
-		o = self.out
-		o.write('<classVarDec>\n')
+		#static or field?
+		self.peek()
 
-		self.advance()
+		if self.tk.getTokenType() != TokenType.KEYWORD:
+			return False
 
-		# static or field?
-		assert self.tk.getTokenType() == TokenType.KEYWORD
-		assert self.tk.keyWord() in ['static', 'field']
-		o.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
+		if self.tk.keyWord() not in ['static', 'field']:
+			return False
 
+		self.write('<classVarDec>\n')
+		self.indent()
+		self.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 		self.__compileType()
 
 		# varName(',' varName)*
 		self.__compileVarNameList()
-		o.write('</classVarDec>\n')
+		self.outdent()
+		self.write('</classVarDec>\n')
+
+		return True
 
 	# helper method for classVarDec, subroutineDec, parameterList, carDec
 	# pattern: int | char | boolean | className
@@ -202,7 +208,7 @@ class CompilationEngine:
 			case TokenType.KEYWORD:
 				# process int, char, boolean
 				assert self.tk.keyWord() in ['int', 'char', 'boolean']
-				self.out.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
+				self.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 			case TokenType.IDENTIFIER:
 				# process className
 
@@ -258,8 +264,8 @@ class CompilationEngine:
 		pattern: ('constructor'|'function'|'method') ('void'|type)
 			subroutineName '('parameterList')' subroutineBody
 		"""
-		o = self.out
-		o.write('<subroutineDec>\n')
+		self.write('<subroutineDec>\n')
+		self.indent()
 
 		# remember we've already advanced when calling __subroutineDecHelper
 		# the skipOnNextEat flag is set to True
@@ -268,7 +274,7 @@ class CompilationEngine:
 
 		# ('constructor'|'function'|'method')
 		keywordValue = self.tk.keyWord()
-		o.write(f'<keyword> {keywordValue} </keyword>')
+		self.write(f'<keyword> {keywordValue} </keyword>\n')
 
 		# ('void'|type)
 		self.peek()
@@ -288,7 +294,8 @@ class CompilationEngine:
 
 		# subroutineBody
 		self.compileSubroutineBody()
-		o.write('</subroutineDec>\n')
+		self.outdent()
+		self.write('</subroutineDec>\n')
 
 	# compiles a (possibly empty) parameter list. does not handle enclosing '()'
 	def compileParameterList(self):
@@ -309,14 +316,14 @@ class CompilationEngine:
 			note that the entire pattern could be empty
 				the character after parameterList ends is always ')'
 		"""
-		o = self.out
-		o.write('<parameterList>\n')
-
+		self.write('<parameterList>\n')
+		self.indent()
 		self.peek()
 
 		# if next symbol is ')', end the parameterList
 		if self.tk.getTokenType() == TokenType.SYMBOL:
-			o.write('</parameterList>\n')
+			self.outdent()
+			self.write('</parameterList>\n')
 			return
 
 		# otherwise the next symbol MUST be a type: int char bool className
@@ -335,7 +342,8 @@ class CompilationEngine:
 			self.compileIdentifier()
 			self.peek()  # check next symbol: ',' or ';'
 
-		o.write('</parameterList>\n')
+		self.outdent()
+		self.write('</parameterList>\n')
 
 	# compiles a subroutine's body
 	# pattern: '{' varDec* statements'}'
@@ -373,8 +381,8 @@ class CompilationEngine:
 
 		🏭 our aim is to match the pattern: '{' varDec* statements'}'
 		"""
-		o = self.out
-		o.write('<subroutineBody>\n')
+		self.write('<subroutineBody>\n')
+		self.indent()
 		self.eat('{')
 
 		# varDec* vs statements
@@ -387,7 +395,8 @@ class CompilationEngine:
 		# statements always starts with keyword in [let, if, while, do, return]
 		self.compileStatements()
 		self.eat('}')
-		o.write('</subroutineBody>\n')
+		self.outdent()
+		self.write('</subroutineBody>\n')
 
 	# compiles a var declaration
 	def compileVarDec(self):
@@ -415,8 +424,8 @@ class CompilationEngine:
 
 	    pattern: var type varName (',' varName)*';'
 		"""
-		o = self.out
-		o.write('<varDec>\n')
+		self.write('<varDec>\n')
+		self.indent()
 
 		# var type varName
 		self.eat('var')
@@ -424,7 +433,8 @@ class CompilationEngine:
 
 		# varName (',' varName)*';'
 		self.__compileVarNameList()
-		o.write('</varDec>\n')
+		self.outdent()
+		self.write('</varDec>\n')
 
 	# compiles a sequence of statements. does not handle enclosing '{}'
 	# a statement is one of 5 options: let, if, while, do, return
@@ -486,8 +496,8 @@ class CompilationEngine:
 
 		note that statements always ends in '}'!
 		"""
-		o = self.out
-		o.write('<statements>\n')
+		self.write('<statements>\n')
+		self.indent()
 
 		# we want to try to compile {let, if, while, do, return} statements
 		# until we run out of those keywords
@@ -496,7 +506,8 @@ class CompilationEngine:
 			# empty because we want to stop when it returns false
 			continue  # probably not necessary
 
-		o.write('</statements>\n')
+		self.outdent()
+		self.write('</statements>\n')
 
 	# helper method for compileStatements, returning false if
 	# {let, if, while, do, return} are not found
@@ -554,8 +565,6 @@ class CompilationEngine:
 
 	# eats token = identifier, checks type
 	def compileIdentifier(self):
-		o = self.out  # makes code more readable
-
 		# we actually don't eat because we're not sure what identifier it is
 		# instead, we advance and assert tokenType
 		self.advance()
@@ -564,18 +573,19 @@ class CompilationEngine:
 		assert self.tk.getTokenType() == TokenType.IDENTIFIER, f'{self.tk.getTokenType()}'
 
 		# then write <identifier> value </identifier>
-		o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
+		self.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
 
 	def compileLet(self):
 		"""
 		letStatement: 'let' varName ('[' expression ']')? '=' expression ';'
 		:return:
 		"""
-		o = self.out
+		self.write('<letStatement>\n')
+		self.indent()
 
 		# 'let'
-		o.write('<letStatement>\n')
 		self.eat('let')
+
 
 		# className, varName, subRName all identifiers ← 'program structure'
 		self.compileIdentifier()
@@ -606,7 +616,8 @@ class CompilationEngine:
 		self.compileExpression()
 		self.eat(';')
 
-		o.write('</letStatement>\n')
+		self.outdent()
+		self.write('</letStatement>\n')
 
 	# compiles an if statement, possibly with a trailing else clause
 	# if '(' expression ')' '{' statements '}' (else '{' statements '}')?
@@ -633,10 +644,10 @@ class CompilationEngine:
         </ifStatement>
 		:return:
 		"""
-		o = self.out
+		self.write('<ifStatement>\n')
+		self.indent()
 
 		# if '(' expression ')'
-		o.write('<ifStatement>\n')
 		self.eat('if')
 		self.__compileExprWithinParens()
 
@@ -647,12 +658,13 @@ class CompilationEngine:
 		self.advance()  # check for else token
 		if self.tk.getTokenType() == TokenType.KEYWORD:
 			if self.tk.keyWord() == 'else':
-				o.write('<keyword> else </keyword>\n')
+				self.write('<keyword> else </keyword>\n')
 				self.__compileStatementsWithinBrackets()
 			else:  # we've already advanced once to check the else keyword
 				self.skipNextAdvance = True
 
-		o.write('</ifStatement>\n')
+		self.write('</ifStatement>\n')
+		self.outdent()
 
 	def __compileExprWithinParens(self):
 		self.eat('(')
@@ -666,10 +678,10 @@ class CompilationEngine:
 
 	# 'while' '(' expression ')' '{' statements '}'
 	def compileWhile(self):
-		o = self.out
 
 		# 'while'
-		o.write('<whileStatement>\n')
+		self.write('<whileStatement>\n')
+		self.indent()
 		self.eat('while')
 
 		# '(' expression ')'
@@ -678,7 +690,8 @@ class CompilationEngine:
 		# '{' statements '}'
 		self.__compileStatementsWithinBrackets()
 
-		o.write('</whileStatement>\n')
+		self.outdent()
+		self.write('</whileStatement>\n')
 
 	# 'do' subroutineCall ';'
 	def compileDo(self):
@@ -701,9 +714,8 @@ class CompilationEngine:
         </doStatement>
 		:return:
 		"""
-		o = self.out
-
-		o.write('<doStatement>\n')
+		self.write('<doStatement>\n')
+		self.indent()
 		self.eat('do')
 
 		# subroutineName '(' expressionList ')' |
@@ -713,7 +725,7 @@ class CompilationEngine:
 		# 	identifier (className | varName) → '.' e.g. obj.render(x, y)
 		# 	identifier (subroutineName) → '(' e.g. render(x, y)
 		self.advance()
-		o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
+		self.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
 
 		self.peek()
 
@@ -722,7 +734,7 @@ class CompilationEngine:
 			self.eat('.')
 			# advance and grab the subroutineName
 			self.advance()
-			o.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
+			self.write(f'<identifier> {self.tk.identifier()} </identifier>\n')
 
 		# then eat('(') → compileExpressionList
 		self.eat('(')
@@ -731,7 +743,8 @@ class CompilationEngine:
 
 		# ';'
 		self.eat(';')
-		o.write('</doStatement>\n')
+		self.outdent()
+		self.write('</doStatement>\n')
 
 	# 'return' expression? ';'
 	def compileReturn(self):
@@ -749,10 +762,9 @@ class CompilationEngine:
 		'return' expression? ';'
 		:return:
 		"""
-		o = self.out
-
 		# 'return'
-		o.write('<returnStatement>\n')
+		self.write('<returnStatement>\n')
+		self.indent()
 		self.eat('return')
 
 		# expression? ';'
@@ -764,19 +776,21 @@ class CompilationEngine:
 		if self.tk.getTokenType() == TokenType.SYMBOL:
 			if self.tk.symbol() == ';':
 				self.eat(';')
-				o.write('</returnStatement>\n')
+				self.outdent()
+				self.write('</returnStatement>\n')
 				return
 		else:
 			# there's an expression in → expression? ';'
 			self.compileExpression()
 			self.eat(';')
-			o.write('</returnStatement>\n')
+			self.outdent()
+			self.write('</returnStatement>\n')
 
 	# the expressionless tests for project 10 use simplified 'term' tokens
 	# that can only be single identifiers or the keyword 'this'.
 	def compileSimpleTerm(self):
-		o = self.out
-		o.write('<term>\n')
+		self.write('<term>\n')
+		self.indent()
 		# the simple version of this rule is identifier | 'this' ←🦔
 
 		self.advance()
@@ -785,28 +799,29 @@ class CompilationEngine:
 		match self.tk.getTokenType():
 			case TokenType.IDENTIFIER:
 				value = self.tk.identifier()
-				o.write(f'<identifier> {value} </identifier>\n')
+				self.write(f'<identifier> {value} </identifier>\n')
 			case TokenType.KEYWORD:
 				assert self.tk.keyWord() in ['this', 'false', 'true', 'null']
 				value = self.tk.keyWord()
-				o.write(f'<keyword> {value} </keyword>\n')
+				self.write(f'<keyword> {value} </keyword>\n')
 
 			# adding extra cases: integer and string constant
 			case TokenType.INT_CONST:
 				value = self.tk.intVal()
-				o.write(f'<integerConstant> {value} </integerConstant>\n')
+				self.write(f'<integerConstant> {value} </integerConstant>\n')
 			case TokenType.STRING_CONST:
 				value = self.tk.stringVal()
-				o.write(f'<stringConstant> {value} </stringConstant>\n')
+				self.write(f'<stringConstant> {value} </stringConstant>\n')
 
 			# TODO technically we do unaryOp term here
 			case TokenType.SYMBOL:
 				value = self.tk.symbol()
-				o.write(f'<symbol> {value} </symbol>\n')
+				self.write(f'<symbol> {value} </symbol>\n')
 			case _:
 				raise ValueError(f'simple term was not an identifier or keywordConstant: {self.tk.getTokenType()}→{value}')
 
-		o.write('</term>\n')
+		self.outdent()
+		self.write('</term>\n')
 
 	# compiles a term. if the current token is an identifier, the routine must
 	# distinguish between a variable, an array entry, or a subroutine call. a
@@ -821,7 +836,6 @@ class CompilationEngine:
 	#   <keyword> null </keyword>
 	#   <keyword> this </keyword>
 	def compileTerm(self):
-		o = self.out
 		# TODO varName | constant, but the full grammar rule is:
 		# integerConstant stringConstant keywordConstant varName
 		# varName '[' expression ']' subroutineCall '(' expression ')'
@@ -861,17 +875,17 @@ class CompilationEngine:
 					case _:
 						raise TypeError(f'')
 
-				o.write(f'<identifier> {value} </identifier>\n')
+				self.write(f'<identifier> {value} </identifier>\n')
 			case TokenType.KEYWORD:
 				value = self.tk.keyWord()
 				assert value in ['true', 'false', 'null', 'this'], value
-				o.write(f'<keyword> {value} </keyword>\n')
+				self.write(f'<keyword> {value} </keyword>\n')
 			case TokenType.INT_CONST:
 				value = self.tk.intVal()
-				o.write(f'<integerConstant> {value} </integerConstant>\n')
+				self.write(f'<integerConstant> {value} </integerConstant>\n')
 			case TokenType.STRING_CONST:
 				value = self.tk.stringVal()
-				o.write(f'<stringConstant> {value} </stringConstant>\n')
+				self.write(f'<stringConstant> {value} </stringConstant>\n')
 			case TokenType.SYMBOL:
 				value = self.tk.symbol()
 				# this will be unaryOp term: write op, recursively compileTerm
@@ -882,8 +896,8 @@ class CompilationEngine:
 
 	# not used in the first pass
 	def compileExpression(self):
-		o = self.out
-		o.write('<expression>\n')
+		self.write('<expression>\n')
+		self.indent()
 		self.indentLevel += 1
 
 		# temporarily call compileTerm for expressionLessSquare testing
@@ -891,7 +905,8 @@ class CompilationEngine:
 		self.compileSimpleTerm()
 
 		self.indentLevel -= 1
-		o.write('</expression>\n')
+		self.outdent()
+		self.write('</expression>\n')
 
 	# compiles a (possibly empty) comma-separated list of expressions
 	# (expression (',' expression)*)?
@@ -918,16 +933,16 @@ class CompilationEngine:
 		:return:
 		"""
 		# (expression (',' expression)*)?
-
-		o = self.out
-		o.write('<expressionList>\n')
+		self.write('<expressionList>\n')
+		self.indent()
 		# how do we check if an expression exists? if it's ')', exprList empty
 		# e.g. out.write('compiler') vs out.write()
 		# hitting the last ')' ensures the expressionList is done
 		self.peek()
 
 		if self.tk.symbol() == ')':
-			o.write('</expressionList>\n')
+			self.outdent()
+			self.write('</expressionList>\n')
 			return
 		else:
 			self.compileExpression()
@@ -945,7 +960,10 @@ class CompilationEngine:
 		# TODO potential bug double evaluating ')' in subroutineName(exprList)
 		# TODO maybe move this code to compileDo
 		if self.tk.symbol() == ')':
-			o.write('</expressionList>')
+			self.outdent()
+			self.write('</expressionList>')
+		else:
+			raise ValueError(f'expressionList did not end with closeParen token')
 
 	# we must have two versions of eat: one with advance and one without
 	# this is for cases with ()? or ()* and we must advance first before
@@ -953,7 +971,6 @@ class CompilationEngine:
 	# → varDec: 'var' type varName (',' varName)*';'
 	# → let: 'let' varName ('[' expression ']')? '=' expression ';'
 	def eat(self, expectedTokenValue: str):
-		o = self.out
 		# expected token ← what the compile_ method that calls eat expects
 		# actual tokenizer token ← tokenizer.advance
 		# note that sometimes we don't advance because the compile method
@@ -979,19 +996,19 @@ class CompilationEngine:
 		match tokenType:  # determine value of token
 			case TokenType.KEYWORD:
 				value = self.tk.keyWord()
-				o.write(f'<keyword> {value} </keyword>\n')
+				self.write(f'<keyword> {value} </keyword>\n')
 			case TokenType.SYMBOL:
 				value = self.tk.symbol()
-				o.write(f'<symbol> {value} </symbol>\n')
+				self.write(f'<symbol> {value} </symbol>\n')
 			case TokenType.IDENTIFIER:
 				value = self.tk.identifier()
-				o.write(f'<identifier> {value} </identifier>\n')
+				self.write(f'<identifier> {value} </identifier>\n')
 			case TokenType.INT_CONST:
 				value = self.tk.intVal()
-				o.write(f'<integerConstant> {value} </integerConstant>\n')
+				self.write(f'<integerConstant> {value} </integerConstant>\n')
 			case TokenType.STRING_CONST:
 				value = self.tk.stringVal()
-				o.write(f'<stringConstant> {value} </stringConstant>\n')
+				self.write(f'<stringConstant> {value} </stringConstant>\n')
 			case _:  # impossible
 				raise TypeError(f'token type invalid: not keyword, symbol, '
 								  f'identifier, int constant, or string constant: {tokenType}')
