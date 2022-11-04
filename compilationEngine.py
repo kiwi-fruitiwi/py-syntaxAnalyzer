@@ -945,7 +945,7 @@ class CompilationEngine:
 		# hitting the last ')' ensures the expressionList is done
 		self.peek()
 
-		if self.tk.symbol() == ')':
+		if self.tk.getTokenType() == TokenType.SYMBOL and self.tk.symbol() == ')':
 			self.outdent()
 			self.write('</expressionList>\n')
 			return
@@ -966,7 +966,7 @@ class CompilationEngine:
 		# TODO maybe move this code to compileDo
 		if self.tk.symbol() == ')':
 			self.outdent()
-			self.write('</expressionList>')
+			self.write('</expressionList>\n')
 		else:
 			raise ValueError(f'expressionList did not end with closeParen token')
 
