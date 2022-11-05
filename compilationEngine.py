@@ -109,7 +109,7 @@ class CompilationEngine:
 		self.indentLevel -= 1
 
 	def write(self, s):
-		self.out.write(self.indentLevel * '\t' + s)
+		self.out.write(self.indentLevel * '  ' + s)
 
 	# calls compile on whatever needs testing at the moment
 	def testCompile(self):
@@ -396,6 +396,7 @@ class CompilationEngine:
 		# varDec always starts with 'var'
 		while self.tk.getTokenType() == TokenType.KEYWORD and self.tk.keyWord() == 'var':
 			self.compileVarDec()
+			self.peek()
 
 		# statements always starts with keyword in [let, if, while, do, return]
 		self.compileStatements()

@@ -1,99 +1,60 @@
 // This file is part of www.nand2tetris.org
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
-/// File name: projects/10/ExpressionLessSquare/Square.jack
+// File name: projects/10/ExpressionLessSquare/SquareGame.jack
 
-/** Expressionless version of projects/10/Square/Square.jack. */
+/** Expressionless version of projects/10/Square/SquareGame.jack. */
 
-class Square {
+class SquareGame {
+   field Square square;
+   field int direction;
 
-   field int x, y;
-   field int size;
-
-   constructor Square new(int Ax, int Ay, int Asize) {
-      let x = Ax;
-      let y = Ay;
-      let size = Asize;
-      do draw();
-      return x;
+   constructor SquareGame new() {
+      let square = square;
+      let direction = direction;
+      return square;
    }
 
    method void dispose() {
-      do Memory.deAlloc(this);
+      do square.dispose();
+      do Memory.deAlloc(square);
       return;
    }
 
-   method void draw() {
-      do Screen.setColor(x);
-      do Screen.drawRectangle(x, y, x, y);
+   method void moveSquare() {
+      if (direction) { do square.moveUp(); }
+      if (direction) { do square.moveDown(); }
+      if (direction) { do square.moveLeft(); }
+      if (direction) { do square.moveRight(); }
+      do Sys.wait(direction);
       return;
    }
 
-   method void erase() {
-      do Screen.setColor(x);
-      do Screen.drawRectangle(x, y, x, y);
-      return;
-   }
+   method void run() {
+      var char key;
+      var boolean exit;
 
-   method void incSize() {
-      if (x) {
-         do erase();
-         let size = size;
-         do draw();
+      let exit = key;
+      while (exit) {
+         while (key) {
+            let key = key;
+            do moveSquare();
+         }
+
+         if (key) { let exit = exit; }
+         if (key) { do square.decSize(); }
+         if (key) { do square.incSize(); }
+         if (key) { let direction = exit; }
+         if (key) { let direction = key; }
+         if (key) { let direction = square; }
+         if (key) { let direction = direction; }
+
+         while (key) {
+            let key = key;
+            do moveSquare();
+         }
       }
       return;
-   }
-
-   method void decSize() {
-      if (size) {
-         do erase();
-         let size = size;
-         do draw();
-      }
-      return;
-   }
-
-   method void moveUp() {
-      if (y) {
-         do Screen.setColor(x);
-         do Screen.drawRectangle(x, y, x, y);
-         let y = y;
-         do Screen.setColor(x);
-         do Screen.drawRectangle(x, y, x, y);
-      }
-      return;
-   }
-
-   method void moveDown() {
-      if (y) {
-         do Screen.setColor(x);
-         do Screen.drawRectangle(x, y, x, y);
-         let y = y;
-         do Screen.setColor(x);
-         do Screen.drawRectangle(x, y, x, y);
-      }
-      return;
-   }
-
-   method void moveLeft() {
-      if (x) {
-         do Screen.setColor(x);
-         do Screen.drawRectangle(x, y, x, y);
-         let x = x;
-         do Screen.setColor(x);
-         do Screen.drawRectangle(x, y, x, y);
-      }
-      return;
-   }
-
-   method void moveRight() {
-      if (x) {
-         do Screen.setColor(x);
-         do Screen.drawRectangle(x, y, x, y);
-         let x = x;
-         do Screen.setColor(x);
-         do Screen.drawRectangle(x, y, x, y);
-      }
-      return;
-   }
+    }
 }
+
