@@ -854,11 +854,11 @@ class CompilationEngine:
 		# remember that keywordConstants are false, true, null, this
 		self.write('<term>\n')
 		self.indent()
-		self.advance()
-		value = None
+		self.peek()
 
 		match self.tk.getTokenType():
 			case TokenType.IDENTIFIER:
+				self.advance()
 				value = self.tk.identifier()
 				self.write(f'<identifier> {value} </identifier>\n')
 
@@ -897,16 +897,22 @@ class CompilationEngine:
 							self.eat('(')
 							self.compileExpressionList()
 							self.eat(')')
+
 						case '(':
 							# TODO this matches subroutineName(expressionList)
 							self.eat('(')
 							self.compileExpressionList()
 							self.eat(')')
+
 						case '[':
 							# TODO process varName[expression]
 							self.eat('[')
 							self.compileExpression()
 							self.eat(']')
+
+						# these are all ops!
+						case '+' | '-' | '*' | '/' | '&' | '|' | '<' | '>' | '=':
+							pass
 						case _:
 							raise ValueError(f'invalid symbol in term LL2: {advTokenValue}')
 
@@ -938,15 +944,18 @@ class CompilationEngine:
 						raise ValueError(f'invalid symbol in term LL2: {value}')
 
 			case TokenType.KEYWORD:
+				self.advance()
 				value = self.tk.keyWord()
 				assert value in ['true', 'false', 'null', 'this'], value
 				self.write(f'<keyword> {value} </keyword>\n')
 
 			case TokenType.INT_CONST:
+				self.advance()
 				value = self.tk.intVal()
 				self.write(f'<integerConstant> {value} </integerConstant>\n')
 
 			case TokenType.STRING_CONST:
+				self.advance()
 				value = self.tk.stringVal()
 				self.write(f'<stringConstant> {value} </stringConstant>\n')
 

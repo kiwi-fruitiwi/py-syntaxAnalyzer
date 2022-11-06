@@ -133,7 +133,6 @@ class JackTokenizer:
 				self.code = self.code[:start] + self.code[end:]
 			except ValueError:
 				break
-		print(f'{self.code}')
 
 	# unnecessary; not part of the API
 	def getJackCommands(self):
