@@ -873,33 +873,58 @@ class CompilationEngine:
 				tokenType = self.tk.getTokenType()
 				if tokenType == TokenType.SYMBOL:
 					advTokenValue = self.tk.symbol()
-					if advTokenValue == '.':
-						# TODO matches pattern (className | varName).srtName(exprList) in subroutineCall
-						#	compileIdentifier
-						# 	eat '('
-						# 	compileExpressionList
-						# 	eat ')'
-						pass
-					if advTokenValue == '(':
-						# TODO this matches subroutineName(expressionList)
-						# 	eat '('
-						# 	compileExpressionList
-						# 	eat ')'
-						pass
-					if advTokenValue == '[':
-						# TODO process varName[expression]
-						#	eat '['
-						#	compileExpression
-						#	eat ']'
-						pass
+					match advTokenValue:
+						case '.':
+							# TODO matches pattern (className | varName).srtName(exprList) in subroutineCall
+							#	compileIdentifier
+							# 	eat '('
+							# 	compileExpressionList
+							# 	eat ')'
+							pass
+						case '(':
+							# TODO this matches subroutineName(expressionList)
+							# 	eat '('
+							# 	compileExpressionList
+							# 	eat ')'
+							pass
+						case '[':
+							# TODO process varName[expression]
+							#	eat '['
+							#	compileExpression
+							#	eat ']'
+							pass
+						case _:
+							raise ValueError(f'invalid symbol in term LL2: {advTokenValue}')
+
 
 				self.write(f'<identifier> {value} </identifier>\n')
 
-
 			case TokenType.SYMBOL:
 				value = self.tk.symbol()
-				# TODO unaryOp term: write op, recursively compileTerm
-				# TODO '(' expression ')'
+				match value:
+					# '(' expression ')'
+					case '(':
+						self.eat('(')
+						self.compileExpression()
+						self.eat(')')
+
+					# unaryOp term: write op, recursively compileTerm
+					#   <expression>
+					#     <term>
+					#       <symbol> ~ </symbol>
+					#       <term>
+					#         <identifier> exit </identifier>
+					#       </term>
+					#     </term>
+					#   </expression>
+					case '-':
+						self.eat('-')
+						self.compileTerm()
+					case '~':
+						self.eat('~')
+						self.compileTerm()
+					case _:
+						raise ValueError(f'invalid symbol in term LL2: {value}')
 
 				print(f'inside compileTerm → {value}')
 			case TokenType.KEYWORD:
