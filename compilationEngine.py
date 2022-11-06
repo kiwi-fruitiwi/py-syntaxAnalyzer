@@ -728,6 +728,14 @@ class CompilationEngine:
 		self.indent()
 		self.eat('do')
 
+		self.__compileSubroutineCallHelper()
+
+		# ';'
+		self.eat(';')
+		self.outdent()
+		self.write('</doStatement>\n')
+
+	def __compileSubroutineCallHelper(self):
 		# subroutineName '(' expressionList ')' |
 		# (className | varName) '.' subroutineName '(' expressionList ')'
 		#
@@ -750,11 +758,6 @@ class CompilationEngine:
 		self.eat('(')
 		self.compileExpressionList()
 		self.eat(')')
-
-		# ';'
-		self.eat(';')
-		self.outdent()
-		self.write('</doStatement>\n')
 
 	# 'return' expression? ';'
 	def compileReturn(self):
@@ -799,10 +802,10 @@ class CompilationEngine:
 	# the expressionless tests for project 10 use simplified 'term' tokens
 	# that can only be single identifiers or the keyword 'this'.
 	def compileSimpleTerm(self):
-		self.write('<term>\n')
-		self.indent()
 		# the simple version of this rule is identifier | 'this' ←🦔
 
+		self.write('<term>\n')
+		self.indent()
 		self.advance()
 		value = None
 
@@ -839,26 +842,21 @@ class CompilationEngine:
 	# single look-ahead token, which may be one of [, (, or ., suffices to
 	# distinguish between the possibilities. any other token is not part of this
 	# term and should not be advanced over.
-	#
-	# the output should be wrapped with <term></term> with the value inside:
-	#   <integerConstant> 1 </integerConstant>
-	#   <identifier> i </identifier>
-	#   <keyword> false </keyword>
-	#   <keyword> null </keyword>
-	#   <keyword> this </keyword>
 	def compileTerm(self):
-		# TODO varName | constant, but the full grammar rule is:
-		# integerConstant stringConstant keywordConstant varName
-		# varName '[' expression ']' subroutineCall '(' expression ')'
-		# unaryOp term
+		"""
+		pattern: intConst | strConst | keywordConst | varName |
+			varName'['expression']' | subroutineCall | '('expression')' |
+			unaryOp term
 
-		# TODO 1st pass: term should just be int,str,keyword,identifier with no
-		# TODO varName[expr] or subCall(expr)
-		# TODO but probably unaryOp term is fine. unaryOps are - and ~
-
+		unaryOp is ['-', '~']
+		"""
 		# 🏭 integerConst stringConst keywordConst identifier unaryOp→term
 		# remember that keywordConstants are false, true, null, this
+		self.write('<term>\n')
+		self.indent()
 		self.advance()
+		value = None
+
 		match self.tk.getTokenType():
 			case TokenType.IDENTIFIER:
 				value = self.tk.identifier()
@@ -942,10 +940,8 @@ class CompilationEngine:
 		# op symbols are: + - * / & | < > =
 		self.peek()
 
-		# while next symbol is an op:
-		# 	eat it
-		# 	compileTerm
-		# 	peek
+		# while next symbol is an op: compile the term that follows and check
+		# for another op!
 		while self.tk.getTokenType() == TokenType.SYMBOL and \
 			self.tk.symbol() in self.opsList:
 
@@ -954,7 +950,7 @@ class CompilationEngine:
 			self.write(f'<symbol> {self.tk.symbol()} </symbol>\n')
 
 			# compile the next term in pattern: op term
-			self.compileTerm()
+			self.compileSimpleTerm()
 
 			# peek at next token to see if it's another op so we can continue
 			self.peek()
