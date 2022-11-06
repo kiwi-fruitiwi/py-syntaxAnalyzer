@@ -902,6 +902,29 @@ class CompilationEngine:
 
 	# not used in the first pass
 	def compileExpression(self):
+		"""
+		  <expression>
+			<term>
+			  <identifier> i </identifier>
+			</term>
+			<symbol> * </symbol>
+			<term>
+			  <symbol> ( </symbol>
+			  <expression>
+				<term>
+				  <symbol> - </symbol>
+				  <term>
+					<identifier> j </identifier>
+				  </term>
+				</term>
+			  </expression>
+			  <symbol> ) </symbol>
+			</term>
+		  </expression>
+
+		→ i * (-j)
+		pattern: term (op term)*
+		"""
 		self.write('<expression>\n')
 		self.indent()
 		self.indentLevel += 1
@@ -909,6 +932,16 @@ class CompilationEngine:
 		# temporarily call compileTerm for expressionLessSquare testing
 		# when we're ready to test expressions, then we can test Square
 		self.compileSimpleTerm()
+
+		# look ahead to determine if the next token is an op
+		# op symbols are: + - * / & | < > =
+		self.peek()
+
+		# while next symbol is an op:
+		# 	eat it
+		# 	compileTerm
+		# 	peek
+
 
 		self.indentLevel -= 1
 		self.outdent()
