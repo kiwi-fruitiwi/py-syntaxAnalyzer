@@ -876,27 +876,36 @@ class CompilationEngine:
 					match advTokenValue:
 						case '.':
 							# TODO matches pattern (className | varName).srtName(exprList) in subroutineCall
-							#	compileIdentifier
-							# 	eat '('
-							# 	compileExpressionList
-							# 	eat ')'
-							pass
+							# let key = Keyboard.keyPressed();
+							#
+							# <expression>
+							#   <term>
+							#     <identifier> Keyboard </identifier>
+							#     <symbol> . </symbol>
+							#     <identifier> keyPressed </identifier>
+							#     <symbol> ( </symbol>
+							#     <expressionList>
+							#     </expressionList>
+							#     <symbol> ) </symbol>
+							#   </term>
+							# </expression>
+							self.eat('.')
+							self.compileIdentifier()
+							self.eat('(')
+							self.compileExpressionList()
+							self.eat(')')
 						case '(':
 							# TODO this matches subroutineName(expressionList)
-							# 	eat '('
-							# 	compileExpressionList
-							# 	eat ')'
-							pass
+							self.eat('(')
+							self.compileExpressionList()
+							self.eat(')')
 						case '[':
 							# TODO process varName[expression]
-							#	eat '['
-							#	compileExpression
-							#	eat ']'
-							pass
+							self.eat('[')
+							self.compileExpression()
+							self.eat(']')
 						case _:
 							raise ValueError(f'invalid symbol in term LL2: {advTokenValue}')
-
-
 				self.write(f'<identifier> {value} </identifier>\n')
 
 			case TokenType.SYMBOL:
@@ -926,17 +935,19 @@ class CompilationEngine:
 					case _:
 						raise ValueError(f'invalid symbol in term LL2: {value}')
 
-				print(f'inside compileTerm → {value}')
 			case TokenType.KEYWORD:
 				value = self.tk.keyWord()
 				assert value in ['true', 'false', 'null', 'this'], value
 				self.write(f'<keyword> {value} </keyword>\n')
+
 			case TokenType.INT_CONST:
 				value = self.tk.intVal()
 				self.write(f'<integerConstant> {value} </integerConstant>\n')
+
 			case TokenType.STRING_CONST:
 				value = self.tk.stringVal()
 				self.write(f'<stringConstant> {value} </stringConstant>\n')
+
 			case _:
 				raise TypeError(f'invalid TokenType: {self.tk.getTokenType()}')
 
