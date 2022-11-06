@@ -860,31 +860,48 @@ class CompilationEngine:
 		match self.tk.getTokenType():
 			case TokenType.IDENTIFIER:
 				value = self.tk.identifier()
+				self.write(f'<identifier> {value} </identifier>\n')
 
 				# we need to advance one more time to check 4 LL2 cases
-				# we already advanced, so don't advance the next time we need to
-				# self.eat. if this flag is true when eat is called, don't
-				# advance. reset the flag instead.
-				# TODO somewhere else this happens. we can just set the flag
+				#   foo ← varName
+				#	foo'['expression']' ← varName'['expression']'
+				#	subroutineCall if next token is '.' or '('
+				#		foo.bar'('expressionList')'
+				#		bar'('expressionList')'
 				self.peek()
 
 				tokenType = self.tk.getTokenType()
-				match tokenType:
-					case TokenType.SYMBOL:
-						advTokenValue = self.tk.symbol()
-						if advTokenValue == '.':
-							# TODO process subroutineCall
-							pass
-						if advTokenValue == '(':
-							# TODO process subroutineCall
-							pass
-						if advTokenValue == '[':
-							# TODO process varName[expression]
-							pass
-					case _:
-						raise TypeError(f'')
+				if tokenType == TokenType.SYMBOL:
+					advTokenValue = self.tk.symbol()
+					if advTokenValue == '.':
+						# TODO matches pattern (className | varName).srtName(exprList) in subroutineCall
+						#	compileIdentifier
+						# 	eat '('
+						# 	compileExpressionList
+						# 	eat ')'
+						pass
+					if advTokenValue == '(':
+						# TODO this matches subroutineName(expressionList)
+						# 	eat '('
+						# 	compileExpressionList
+						# 	eat ')'
+						pass
+					if advTokenValue == '[':
+						# TODO process varName[expression]
+						#	eat '['
+						#	compileExpression
+						#	eat ']'
+						pass
 
 				self.write(f'<identifier> {value} </identifier>\n')
+
+
+			case TokenType.SYMBOL:
+				value = self.tk.symbol()
+				# TODO unaryOp term: write op, recursively compileTerm
+				# TODO '(' expression ')'
+
+				print(f'inside compileTerm → {value}')
 			case TokenType.KEYWORD:
 				value = self.tk.keyWord()
 				assert value in ['true', 'false', 'null', 'this'], value
@@ -895,13 +912,11 @@ class CompilationEngine:
 			case TokenType.STRING_CONST:
 				value = self.tk.stringVal()
 				self.write(f'<stringConstant> {value} </stringConstant>\n')
-			case TokenType.SYMBOL:
-				value = self.tk.symbol()
-				# this will be unaryOp term: write op, recursively compileTerm
-				# can it be another unaryOp term?
-				print(f'inside compileTerm → {value}')
 			case _:
 				raise TypeError(f'invalid TokenType: {self.tk.getTokenType()}')
+
+		self.outdent()
+		self.write('</term>\n')
 
 	# not used in the first pass
 	def compileExpression(self):
