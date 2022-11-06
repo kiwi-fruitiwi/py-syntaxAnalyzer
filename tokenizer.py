@@ -101,8 +101,8 @@ class JackTokenizer:
 			# ignore comments that start with /**
 			# TODO add case if this appears mid-line: slice!
 			#  but what about multiline?
-			if line[0] == '/' and line[1] == '*' and line[2] == '*':
-				continue
+			# if line[0] == '/' and line[1] == '*' and line[2] == '*':
+			#	continue
 
 			# ignore mid-line comments
 			try:
@@ -123,6 +123,17 @@ class JackTokenizer:
 		# unsure why this is needed
 		# all .jack files have extra newline at the end
 		self.code += '\n'
+
+		# process out all multi-line comments starting '/**', ending '*/'
+
+		while True:
+			try:
+				start = self.code.index('/**')
+				end = self.code.index('*/') + 2
+				self.code = self.code[:start] + self.code[end:]
+			except ValueError:
+				break
+		print(f'{self.code}')
 
 	# unnecessary; not part of the API
 	def getJackCommands(self):

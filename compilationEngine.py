@@ -874,6 +874,9 @@ class CompilationEngine:
 				if tokenType == TokenType.SYMBOL:
 					advTokenValue = self.tk.symbol()
 					match advTokenValue:
+						case ';' | ')':
+							# we're at the end of the line!
+							pass
 						case '.':
 							# TODO matches pattern (className | varName).srtName(exprList) in subroutineCall
 							# let key = Keyboard.keyPressed();
@@ -906,7 +909,6 @@ class CompilationEngine:
 							self.eat(']')
 						case _:
 							raise ValueError(f'invalid symbol in term LL2: {advTokenValue}')
-				self.write(f'<identifier> {value} </identifier>\n')
 
 			case TokenType.SYMBOL:
 				value = self.tk.symbol()
@@ -985,7 +987,7 @@ class CompilationEngine:
 
 		# temporarily call compileTerm for expressionLessSquare testing
 		# when we're ready to test expressions, then we can test Square
-		self.compileSimpleTerm()
+		self.compileTerm()
 
 		# look ahead to determine if the next token is an op
 		# op symbols are: + - * / & | < > =
@@ -1001,7 +1003,7 @@ class CompilationEngine:
 			self.write(f'<symbol> {self.tk.symbol()} </symbol>\n')
 
 			# compile the next term in pattern: op term
-			self.compileSimpleTerm()
+			self.compileTerm()
 
 			# peek at next token to see if it's another op so we can continue
 			self.peek()
