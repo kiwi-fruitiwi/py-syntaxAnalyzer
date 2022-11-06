@@ -100,6 +100,9 @@ class CompilationEngine:
 
 		# if true, the next eat() doesn't advance
 		self.skipNextAdvance = False
+
+		# ops in the Jack Grammar
+		self.opsList = ['+', '-', '*', '/', '&', '|', '<', '>', '=']
 		pass
 
 	def indent(self):
@@ -177,7 +180,7 @@ class CompilationEngine:
 		(static | field) type varName (',' varName)* ';'
 		type → int | char | boolean | className
 		"""
-		#static or field?
+		# static or field?
 		self.peek()
 
 		if self.tk.getTokenType() != TokenType.KEYWORD:
@@ -209,7 +212,8 @@ class CompilationEngine:
 		match self.tk.getTokenType():
 			case TokenType.KEYWORD:
 				# process int, char, boolean
-				assert self.tk.keyWord() in ['int', 'char', 'boolean'], f'{self.tk.keyWord()}'
+				assert self.tk.keyWord() in ['int', 'char',
+											 'boolean'], f'{self.tk.keyWord()}'
 				self.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 			case TokenType.IDENTIFIER:
 				# process className
@@ -546,7 +550,8 @@ class CompilationEngine:
 					self.compileReturn()
 					return True
 				case _:
-					raise ValueError(f'did not find let, if, while, do, or return → {self.tk.keyWord()}')
+					raise ValueError(
+						f'did not find let, if, while, do, or return → {self.tk.keyWord()}')
 
 	# helper method for compileClassVarDec, compileVarDec
 	# classVarDec pattern: (static | field) type varName (, varName)* ';'
@@ -591,7 +596,6 @@ class CompilationEngine:
 
 		# 'let'
 		self.eat('let')
-
 
 		# className, varName, subRName all identifiers ← 'program structure'
 		self.compileIdentifier()
@@ -824,7 +828,8 @@ class CompilationEngine:
 				value = self.tk.symbol()
 				self.write(f'<symbol> {value} </symbol>\n')
 			case _:
-				raise ValueError(f'simple term was not an identifier or keywordConstant: {self.tk.getTokenType()}→{value}')
+				raise ValueError(
+					f'simple term was not an identifier or keywordConstant: {self.tk.getTokenType()}→{value}')
 
 		self.outdent()
 		self.write('</term>\n')
@@ -941,8 +946,20 @@ class CompilationEngine:
 		# 	eat it
 		# 	compileTerm
 		# 	peek
+		while self.tk.getTokenType() == TokenType.SYMBOL and \
+			self.tk.symbol() in self.opsList:
 
+			# eat it
+			self.advance()
+			self.write(f'<symbol> {self.tk.symbol()} </symbol>\n')
 
+			# compile the next term in pattern: op term
+			self.compileTerm()
+
+			# peek at next token to see if it's another op so we can continue
+			self.peek()
+
+		# if the next term isn't a symbol in opsList, the expression is over
 		self.indentLevel -= 1
 		self.outdent()
 		self.write('</expression>\n')
@@ -1002,7 +1019,8 @@ class CompilationEngine:
 			self.outdent()
 			self.write('</expressionList>\n')
 		else:
-			raise ValueError(f'expressionList did not end with closeParen token')
+			raise ValueError(
+				f'expressionList did not end with closeParen token')
 
 	# we must have two versions of eat: one with advance and one without
 	# this is for cases with ()? or ()* and we must advance first before
@@ -1050,7 +1068,7 @@ class CompilationEngine:
 				self.write(f'<stringConstant> {value} </stringConstant>\n')
 			case _:  # impossible
 				raise TypeError(f'token type invalid: not keyword, symbol, '
-								  f'identifier, int constant, or string constant: {tokenType}')
+								f'identifier, int constant, or string constant: {tokenType}')
 		# assert expectedToken matches actual token
 		# print(f'[eating → {value}]')
 		assert expectedTokenValue == value, f'expected: {expectedTokenValue}, actual: {value}'
