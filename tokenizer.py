@@ -59,7 +59,7 @@ class JackTokenizer:
 		self.currentIntConstValue = None
 		self.currentKeyWordValue = None
 
-		self.symbols = "{}[]().,;+-*/|<>=~"
+		self.symbols = "{}[]().,;+-*/&|<>=~"
 		self.digits = "0123456789"  # for integer constants
 		self.keywords = [
 			'class',
@@ -190,18 +190,7 @@ class JackTokenizer:
 	# helper function to process symbols
 	def __processSymbol(self):
 		sym = self.code[self.i]
-		# special cases for html character codes
-		match sym:
-			case '<':
-				self.currentSymbolValue = '&lt;'
-			case '>':
-				self.currentSymbolValue = '&rt;'
-			case '&':
-				self.currentSymbolValue = '&amp;'
-			case _:  # TODO what happened to &quot; from lecture notes?
-				# note that " is not a symbol
-				self.currentSymbolValue = sym
-
+		self.currentSymbolValue = sym
 		self.currentTokenType = TokenType.SYMBOL
 		self.i += 1
 

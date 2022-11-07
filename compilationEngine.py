@@ -76,6 +76,20 @@
 from tokenizer import JackTokenizer, TokenType
 
 
+def convertSymbolToHtml(value):
+	result = None
+	match value:
+		case '<':
+			result = '&lt;'
+		case '>':
+			result = '&gt;'
+		case '&':
+			result = '&amp;'
+		case _:
+			result = value
+	return result
+
+
 class CompilationEngine:
 	"""
 	The compilationEngine generates the compiler's output
@@ -124,6 +138,7 @@ class CompilationEngine:
 		# self.compileStatements()
 		self.compileClass()
 		# self.compileDo()
+		# self.compileExpression()
 
 		pass
 
@@ -828,7 +843,7 @@ class CompilationEngine:
 
 			# TODO technically we do unaryOp term here
 			case TokenType.SYMBOL:
-				value = self.tk.symbol()
+				value = convertSymbolToHtml(self.tk.symbol())
 				self.write(f'<symbol> {value} </symbol>\n')
 			case _:
 				raise ValueError(
@@ -912,6 +927,10 @@ class CompilationEngine:
 
 						# these are all ops!
 						case '+' | '-' | '*' | '/' | '&' | '|' | '<' | '>' | '=':
+							pass
+
+						# this is the next token for expressionList
+						case ',':
 							pass
 						case _:
 							raise ValueError(f'invalid symbol in term LL2: {advTokenValue}')
@@ -1009,7 +1028,7 @@ class CompilationEngine:
 
 			# eat it
 			self.advance()
-			self.write(f'<symbol> {self.tk.symbol()} </symbol>\n')
+			self.write(f'<symbol> {convertSymbolToHtml(self.tk.symbol())} </symbol>\n')
 
 			# compile the next term in pattern: op term
 			self.compileTerm()
@@ -1112,21 +1131,27 @@ class CompilationEngine:
 			case TokenType.KEYWORD:
 				value = self.tk.keyWord()
 				self.write(f'<keyword> {value} </keyword>\n')
+
 			case TokenType.SYMBOL:
-				value = self.tk.symbol()
+				value = convertSymbolToHtml(self.tk.symbol())
 				self.write(f'<symbol> {value} </symbol>\n')
+
 			case TokenType.IDENTIFIER:
 				value = self.tk.identifier()
 				self.write(f'<identifier> {value} </identifier>\n')
+
 			case TokenType.INT_CONST:
 				value = self.tk.intVal()
 				self.write(f'<integerConstant> {value} </integerConstant>\n')
+
 			case TokenType.STRING_CONST:
 				value = self.tk.stringVal()
 				self.write(f'<stringConstant> {value} </stringConstant>\n')
+
 			case _:  # impossible
-				raise TypeError(f'token type invalid: not keyword, symbol, '
-								f'identifier, int constant, or string constant: {tokenType}')
+				raise TypeError(f'token type invalid: not keyword, symbol, \
+					identifier, int constant, or string constant: {tokenType}')
+
 		# assert expectedToken matches actual token
 		# print(f'[eating → {value}]')
 		assert expectedTokenValue == value, f'expected: {expectedTokenValue}, actual: {value}'
