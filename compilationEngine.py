@@ -227,8 +227,7 @@ class CompilationEngine:
 		match self.tk.getTokenType():
 			case TokenType.KEYWORD:
 				# process int, char, boolean
-				assert self.tk.keyWord() in ['int', 'char',
-											 'boolean'], f'{self.tk.keyWord()}'
+				assert self.tk.keyWord() in ['int', 'char', 'boolean'], f'{self.tk.keyWord()}'
 				self.write(f'<keyword> {self.tk.keyWord()} </keyword>\n')
 			case TokenType.IDENTIFIER:
 				# process className
@@ -627,7 +626,7 @@ class CompilationEngine:
 			self.eat('[')
 			self.compileExpression()
 			self.eat(']')
-			self.advance()  # reach the '='
+			self.peek()  # reach the '='
 
 		# we are guaranteed the next symbol is '='
 		# eat it, compileExpr, eat(';')
