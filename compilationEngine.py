@@ -931,6 +931,11 @@ class CompilationEngine:
 						# this is the next token for expressionList
 						case ',':
 							pass
+
+						# closing array bracket for our simple term
+						case ']':
+							pass
+
 						case _:
 							raise ValueError(f'invalid symbol in term LL2: {advTokenValue}')
 
